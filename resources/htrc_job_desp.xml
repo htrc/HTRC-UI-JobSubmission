@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:job xmlns:ns2="http://www.globus.org/namespaces/2004/10/gram/job/description">
+    <ns2:executable>java -jar htrc-app-0.2.jar dataapitest.properties token.tmp</ns2:executable>
+    <ns2:environment>
+        <name>image.type</name>
+        <value>m1.small</value>
+    </ns2:environment>
+    <ns2:environment>
+        <name>instance.number</name>
+        <value>1</value>
+    </ns2:environment>
+    <ns2:environment>
+        <name>software.framework</name>
+        <value>JAVA</value>
+    </ns2:environment>
+    <ns2:environment>
+        <name>output.file</name>
+        <value>result.txt</value>
+    </ns2:environment>
+    <ns2:jobType>single</ns2:jobType>
+</ns2:job>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="http://www.globus.org/namespaces/2004/10/gram/job/description"
+	targetNamespace="http://www.globus.org/namespaces/2004/10/gram/job/description">
+	<xsd:element name="job" type="tns:JobDescriptionType" />
+
+	<xsd:complexType name="JobDescriptionType">
+		<xsd:sequence>
+			<xsd:element ref="tns:executable" minOccurs="1" maxOccurs="1" />
+			<xsd:element ref="tns:localUserId" minOccurs="0" maxOccurs="1" />
+			<xsd:element ref="tns:environment" minOccurs="0"
+				maxOccurs="unbounded" />
+			<xsd:element ref="tns:jobType" minOccurs="1" maxOccurs="1" />			
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<!-- This field actually specifies the command line -->
+	<xsd:element name="executable" type="xsd:string" />
+	<xsd:element name="environment" type="tns:NameValuePairType" />
+	<xsd:element name="jobType" type="tns:JobTypeEnumeration" />
+	<xsd:element name="localUserId" type="xsd:string" />
+
+	<xsd:complexType name="NameValuePairType">
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" />
+			<xsd:element name="value" type="xsd:string" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="JobTypeEnumeration">
+		<xsd:restriction base="xsd:string">
+			<!-- <xsd:enumeration value="mpi" /> <xsd:enumeration value="condor" /> -->
+			<xsd:enumeration value="single" />
+			<xsd:enumeration value="multiple" />
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>   
