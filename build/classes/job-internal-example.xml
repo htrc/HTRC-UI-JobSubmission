@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:job xmlns:ns2="http://www.globus.org/namespaces/2004/10/gram/job/description">
+
+	<ns2:localUserId>gruan</ns2:localUserId>
+
+	<ns2:commandLine>wordcount.jar
+		edu.indiana.d2i.sloan.example.MapReduceWC author:JaneAusten volid.txt
+		wc_result
+	</ns2:commandLine>
+
+	<ns2:jobType>mapreduce</ns2:jobType>
+
+	<ns2:fileStageOut>
+		<srcPath>volid.txt</srcPath>
+		<srcType>headnode</srcType>
+		<destPath>/htrc/tmpoutput/gruan/wcjob</destPath>
+		<destType>wso2_registry</destType>
+	</ns2:fileStageOut>
+
+	<ns2:fileStageOut>
+		<srcPath>wc_result</srcPath>
+		<srcType>hdfs</srcType>
+		<destPath>/htrc/tmpoutput/gruan/wcjob</destPath>
+		<destType>wso2_registry</destType>
+	</ns2:fileStageOut>
+
+	<ns2:VMCount>2</ns2:VMCount>
+	<ns2:executionTime>30:00</ns2:executionTime>
+
+	<ns2:tokenPath>
+		<srcPath>/htrc/repo/gruan/token.tmp</srcPath>
+		<srcType>wso2_registry</srcType>
+		<destPath></destPath>
+		<destType>headnode</destType>
+	</ns2:tokenPath>
+
+	<ns2:archive>
+		<srcPath>/htrc/repo/gruan/wcjob/archive/wcjob.zip</srcPath>
+		<srcType>wso2_registry</srcType>
+		<destPath></destPath>
+		<destType>headnode</destType>
+	</ns2:archive>
+
+	<ns2:tmpOutput>
+		<srcPath></srcPath>
+		<srcType></srcType>
+		<destPath>/htrc/tmpoutput/gruan/wcjob</destPath>
+		<destType>wso2_registry</destType>
+	</ns2:tmpOutput>
+
+	<ns2:worksets>
+		<workset>
+			<srcPath>/htrc/workset/gruan/workset1/workset1.zip</srcPath>
+			<srcType>wso2_registry</srcType>
+			<destPath></destPath>
+			<destType>headnode</destType>
+		</workset>
+		<workset>
+			<srcPath>/htrc/workset/gruan/workset2/workset2.zip</srcPath>
+			<srcType>wso2_registry</srcType>
+			<destPath></destPath>
+			<destType>headnode</destType>
+		</workset>
+	</ns2:worksets>
+</ns2:job>

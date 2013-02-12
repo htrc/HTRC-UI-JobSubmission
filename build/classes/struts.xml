@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN" "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+	<constant name="struts.devMode" value="false" />
+	<constant name="struts.custom.i18n.resources" value="ApplicationResources" />
+	<package name="default" extends="struts-default" namespace="/">
+		<!-- <action name="login" class="edu.indiana.d2i.ui.LoginAction"> <result 
+			name="success" type="chain">list_job</result> <result name="input">login.jsp</result> 
+			</action> -->
+		<action name="login" class="edu.indiana.d2i.ui.LoginAction">
+			<result name="success" type="chain">job_search</result>
+			<result name="input">login.jsp</result>
+		</action>
+
+		<action name="job_search" class="edu.indiana.d2i.ui.JobSearchAction"
+			method="showJob">
+			<result name="none">search_jobs.jsp</result>
+			<result name="error">error.jsp</result>
+		</action>
+
+		<action name="submit_search" class="edu.indiana.d2i.ui.JobSearchAction">
+			<result name="none" type="chain">show_search</result>
+			<result name="error">error.jsp</result>
+		</action>
+
+		<action name="show_search" class="edu.indiana.d2i.ui.SearchResult"
+			method="showSearchRes">
+			<result name="success">search_results.jsp</result>
+			<result name="error">error.jsp</result>
+		</action>
+
+		<action name="op_job" class="edu.indiana.d2i.ui.SearchResult">
+			<result name="expire">token_exp.jsp</result>
+			<result name="run" type="chain">job_query</result>
+			<result name="manage" type="chain">job_info</result>
+			<result name="error">error.jsp</result>
+		</action>
+		
+		<action name="list_job" class="edu.indiana.d2i.ui.JobListAction"
+			method="listJob">
+			<result name="none">list_jobs.jsp</result>
+			<result name="error">error.jsp</result>
+		</action>
+
+		<action name="select_job" class="edu.indiana.d2i.ui.JobListAction">
+			<result name="expire">token_exp.jsp</result>
+			<result name="run" type="chain">job_query</result>
+			<result name="manage" type="chain">job_info</result>
+			<result name="error">error.jsp</result>
+		</action>
+
+		<action name="job_query" class="edu.indiana.d2i.ui.JobQueryAction">
+			<result name="success">query_job.jsp</result>
+			<result name="error">error.jsp</result>
+		</action>
+
+		<action name="job_info" class="edu.indiana.d2i.ui.JobManageAction"
+			method="listJobInfo">
+			<result name="none">manage_job.jsp</result>
+			<result name="error">error.jsp</result>
+		</action>
+
+		<action name="update_job" class="edu.indiana.d2i.ui.JobManageAction">
+			<result name="success">update_success.jsp</result>
+			<result name="error">update_error.jsp</result>
+		</action>
+
+		<action name="job_sub_interface" class="edu.indiana.d2i.ui.JobSubmitAction"
+			method="jobSubmit">
+			<result name="success">upload_submit.jsp</result>
+			<result name="error">error.jsp</result>
+		</action>
+
+		<action name="job_submit" class="edu.indiana.d2i.ui.JobSubmitAction">
+			<result name="success">submit_success.jsp</result>
+			<result name="error">error.jsp</result>
+		</action>
+	</package>
+</struts>
