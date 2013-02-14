@@ -1,0 +1,16 @@
+.login {
+	margin: auto; 
+	width : 30%;
+	text-align: center;
+	border: 1px groove;
+}
+
+.login img {
+	height: 90px; 
+	width: 90px;
+}
+
+.input {
+	margin: auto; 
+	width : 60%;
+}

@@ -19,7 +19,7 @@ import org.apache.axiom.om.util.AXIOMUtil;
 import org.apache.axis2.AxisFault;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
-import edu.indiana.d2i.AgentsRepoSingleton;
+import edu.indiana.d2i.sloan.AgentsRepoSingleton;
 import edu.indiana.extreme.sigiri.SigiriServiceStub;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.HpcResourceName;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobId;

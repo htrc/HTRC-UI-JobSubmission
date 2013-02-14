@@ -59,12 +59,6 @@
 			<xsd:element name="worksets" type="tns:WorkSets"
 				minOccurs="0" maxOccurs="1" />
 
-			<!-- path/folder to registry which stores data staged out from Sloan cloud -->
-			<!-- files under this folder are not visible to user until passed security 
-				screening -->
-			<xsd:element name="tmpOutput" type="tns:TransferRequestType"
-				minOccurs="1" maxOccurs="1" />
-
 			<!-- end of registry related fields -->
 		</xsd:sequence>
 	</xsd:complexType>

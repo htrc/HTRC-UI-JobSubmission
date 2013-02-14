@@ -1,0 +1,128 @@
+/* jobdetails.jsp */
+#viewjob {
+	width: 1200px;	
+	height: 800px;
+}
+
+#jobdetails {
+	width: 30%;	
+	height: 500px;
+	float: left;
+}
+
+#visibleresult {
+	width: 70%;	
+	height: 500px;
+	float: left;
+}
+
+#algorithmName, #jobTitle {
+	overflow: auto;
+	width: 300px;
+}
+
+#resultlinks {
+	overflow: auto;
+	height: 80px;
+	width: 300px;
+	border: 1px solid #ccc;
+}
+
+#parameters {
+	overflow: auto;
+	height: 200px;
+	width: 300px;
+	border: 1px solid #ccc;
+}
+
+
+#visibleresult iframe {
+	height: 500px;
+	width: 100%;
+}
+
+#jobtitle {
+	float: left;	
+}
+
+p {
+	width:11em; 
+	border:1px solid #000000;
+	word-break:break-all;
+}
+
+/* joblist.jsp */
+#joblist {
+	width: 900px;	
+}
+	
+#activejobs {
+	width: 900px;
+	float: left;	
+	margin-bottom: 1em;
+}
+
+#completedjobs {
+	width: 900px;
+	float:left;	
+}
+
+#completedjobsheader, #activejobsheader {
+	width: 100%;
+	background-color: #C0C0C0;
+}
+
+#completedjobsbody, #activejobsbody {
+	height: 100px; 
+	width: 100%;
+	margin-bottom: 0.5em;
+	overflow-y: scroll;
+}
+
+#completedjobsbody td, #completedjobsheader th, #activejobsbody td, #activejobsheader th {
+	text-align: center;
+}
+
+#activejobtitle, #completejobtitle {
+	width: 120px;
+	overflow: auto;
+}
+
+.deletejobs, .canceljobs {
+	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf) );
+	background:-moz-linear-gradient( center top, #ededed 5%, #dfdfdf 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
+	background-color:#ededed;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-radius:6px;
+	border:1px solid #dcdcdc;
+	display:inline-block;
+	color:#777777;
+	font-family:Times New Roman;
+	font-size:13px;
+	font-weight:bold;
+	padding:3px 13px;
+	text-decoration:none;
+	text-shadow:1px 1px 0px #ffffff;
+	float: right;
+}.deletejobs:hover, .canceljobs:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #dfdfdf), color-stop(1, #ededed) );
+	background:-moz-linear-gradient( center top, #dfdfdf 5%, #ededed 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
+	background-color:#dfdfdf;
+}.deletejobs:active, .canceljobs:hover {
+	position:relative;
+	top:1px;
+}
+
+/*
+#cancelbutton, #deletebutton {
+	float: right;	
+}
+*/
+
+
