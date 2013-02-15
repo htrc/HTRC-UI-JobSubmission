@@ -34,12 +34,12 @@ public class Constants {
 	public static final String PN_OAUTH2_CLIENT_PASS = "oauth2.client.secrete";
 	public static final String PN_OAUTH2_GRANT_TYPE = "oauth2.grant";
 	public static final String PN_OAUTH2_SCOPE = "oauth2.scope";
-	
+
 	public static String OAUTH2_REDIRECT_URL = "oauth2.redirect";
 	public static String OAUTH2_ACCESS_TOKEN = "access_token";
 	public static String OAUTH2_REFRESH_TOKEN = "refresh_token";
 	public static String OAUTH2_EXPIRE = "expires_in";
-	
+
 	public static final String PN_OAUTH2_SERVER_EPR = "";
 	public static final String PN_OAUTH2_SERVER_SELF_SIGNED = "";
 
@@ -57,11 +57,14 @@ public class Constants {
 	public static final String PN_WSO2_REPO_PREFIX = "wso2.registry.repo.prefix";
 	public static final String PN_WSO2_WORKSET_PREFIX = "wso2.registry.workset.prefix";
 	public static final String PN_WSO2_TMPOUTPUT_PREFIX = "wso2.registry.tmpoutput.prefix";
-	public static final String PN_WSO2_REPO_JOB_DESP = "wso2.registry.repo.job.desp";
 	public static final String PN_WSO2_REPO_JOB_ARCHIVE = "wso2.registry.repo.job.archive";
 
 	public static final String OAUTH2_TOKEN_FNAME = "token.tmp";
 	public static final String WSO2_JOB_PROP_FNAME = "job.properties";
+	public static final String WSO2_JOB_DESP_FNAME = "job-description.xml";
+	public static final String WSO2_WORKSET_META_FNAME = "metadata.properties";
+	public static final String WSO2_WORKSET_METAFILE_SETNAME = "workset.name";
+	public static final String WSO2_WORKSET_METAFILE_SETDESP = "workset.description";
 	public static final String SIGIRI_JOB_ID = "sigiri.job.id";
 	public static final String SIGIRI_JOB_STATUS = "sigiri.job.status";
 	public static final String SIGIRI_JOB_STATUS_UPDATE_TIME = "sigiri.job.status.update.time";
@@ -81,7 +84,7 @@ public class Constants {
 	public static String SESSION_REFRESH_TOKEN = "session.refresh.token";
 	public static String SESSION_LAST_ACTION = "session.lastaction";
 	public static String SESSION_EXIST_BEFORE = "session.timeout";
-	
+
 	// Mis
 	public static String PROPERTY_FNAME = "sloan-job-submission.properties";
 }

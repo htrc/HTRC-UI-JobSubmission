@@ -24,12 +24,19 @@ public class PortalConfiguration {
 	private static String registryStorePath = null;
 	private static String registryStorePwd = null;
 	private static String registryStoreType = null;
+
 	/* repo home */
 	private static String registryPrefix = null;
+
 	/* workset home */
 	private static String registryWorksetPrefix = null;
+
 	/* tmpoutput home */
 	private static String registryTmpOutputPrefix = null;
+
+	/* job archive folder name */
+	private static String registryArchiveFolder = null;
+
 	private static String axis2Repo = null;
 	private static String axis2Conf = null;
 
@@ -76,6 +83,8 @@ public class PortalConfiguration {
 				Constants.PN_WSO2_WORKSET_PREFIX, "/htrc/workset/");
 		registryTmpOutputPrefix = props.getProperty(
 				Constants.PN_WSO2_TMPOUTPUT_PREFIX, "/htrc/tmpoutput/");
+		registryArchiveFolder = props.getProperty(
+				Constants.PN_WSO2_REPO_JOB_ARCHIVE, "archive");
 		axis2Repo = props.getProperty(Constants.PN_WSO2_AXIS2_REPO,
 				"wso2_axis2repo");
 		axis2Conf = props.getProperty(Constants.PN_WSO2_AXIS2_CONF,
@@ -200,5 +209,11 @@ public class PortalConfiguration {
 		if (sigiriEPR == null)
 			loadProperties();
 		return sigiriEPR;
+	}
+
+	public static String getRegistryArchiveFolder() throws IOException {
+		if (registryArchiveFolder == null)
+			loadProperties();
+		return registryArchiveFolder;
 	}
 }

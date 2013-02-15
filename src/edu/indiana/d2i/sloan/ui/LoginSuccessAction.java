@@ -228,7 +228,7 @@ public class LoginSuccessAction extends ActionSupport implements
 		if (!wso2Agent.isResourceExist(userHome)) {
 			wso2Agent.createDir(userHome);
 			logger.info(String.format(
-					"%s 's home directory doesn't exist, create it", username));
+					"%s's home directory doesn't exist, create it", username));
 			logger.info(String.format("Home dir %s created", userHome));
 		}
 
@@ -239,7 +239,7 @@ public class LoginSuccessAction extends ActionSupport implements
 		if (!wso2Agent.isResourceExist(worksetHome)) {
 			wso2Agent.createDir(worksetHome);
 			logger.info(String.format(
-					"%s 's workset home doesn't exist, create it", username));
+					"%s's workset home doesn't exist, create it", username));
 			logger.info(String.format("Workset home dir %s created",
 					worksetHome));
 		}
@@ -251,7 +251,7 @@ public class LoginSuccessAction extends ActionSupport implements
 		if (!wso2Agent.isResourceExist(tmpOutputHome)) {
 			wso2Agent.createDir(tmpOutputHome);
 			logger.info(String.format(
-					"%s 's tmpOutput home doesn't exist, create it", username));
+					"%s's tmpOutput home doesn't exist, create it", username));
 			logger.info(String.format("tmpOutput home dir %s created",
 					tmpOutputHome));
 		}

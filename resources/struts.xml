@@ -27,15 +27,15 @@
 		</global-results>
 
 		<action name="HomeAction" class="edu.indiana.d2i.sloan.ui.HomeAction">
-			<result name="success">./home.jsp</result>
+			<result name="success">/home.jsp</result>
 		</action>
 
 		<action name="AboutAction" class="edu.indiana.d2i.sloan.ui.AboutAction">
-			<result name="success">./about.jsp</result>
+			<result name="success">/about.jsp</result>
 		</action>
 
 		<action name="HelpAction" class="edu.indiana.d2i.sloan.ui.HelpAction">
-			<result name="success">./help.jsp</result>
+			<result name="success">/help.jsp</result>
 		</action>
 
 		<action name="LogInAction" class="edu.indiana.d2i.sloan.ui.LoginAction">
@@ -55,7 +55,7 @@
 
 		<action name="PrepareJobInfoAction" class="edu.indiana.d2i.sloan.ui.JobSearchAction"
 			method="prepareJobInfo">
-			<result name="success">searchjobs.jsp</result>
+			<result name="success">/searchjobs.jsp</result>
 			<result name="error">/jsp/error.jsp</result>
 		</action>
 
@@ -70,79 +70,21 @@
 			<result name="error">/jsp/error.jsp</result>
 		</action>
 
+		<action name="ListSearchResultAction" class="edu.indiana.d2i.sloan.ui.SearchResult">
+			<result name="success" type="chain">JobQueryAction</result>
+			<result name="error">/jsp/error.jsp</result>
+		</action>
+
 		<action name="JobSubmitFormAction" class="edu.indiana.d2i.sloan.ui.JobSubmitAction"
-			method="jobSubmit">
-			<result name="success">upload_submit.jsp</result>
-			<result name="error">error.jsp</result>
+			method="jobSubmitForm">
+			<result name="success">/uploadsubmit.jsp</result>
+			<result name="error">/jsp/error.jsp</result>
 		</action>
 
-		<action name="login" class="edu.indiana.d2i.sloan.ui.LoginAction">
-			<result name="success" type="chain">job_search</result>
-			<result name="input">login.jsp</result>
-		</action>
-
-		<action name="job_search" class="edu.indiana.d2i.sloan.ui.JobSearchAction"
-			method="showJob">
-			<result name="none">search_jobs.jsp</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="submit_search" class="edu.indiana.d2i.sloan.ui.JobSearchAction">
-			<result name="none" type="chain">show_search</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="show_search" class="edu.indiana.d2i.sloan.ui.SearchResult"
-			method="showSearchRes">
-			<result name="success">search_results.jsp</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="op_job" class="edu.indiana.d2i.sloan.ui.SearchResult">
-			<result name="expire">token_exp.jsp</result>
-			<result name="run" type="chain">job_query</result>
-			<result name="manage" type="chain">job_info</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="list_job" class="edu.indiana.d2i.sloan.ui.JobListAction"
-			method="listJob">
-			<result name="none">list_jobs.jsp</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="select_job" class="edu.indiana.d2i.sloan.ui.JobListAction">
-			<result name="expire">token_exp.jsp</result>
-			<result name="run" type="chain">job_query</result>
-			<result name="manage" type="chain">job_info</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="job_query" class="edu.indiana.d2i.sloan.ui.JobQueryAction">
-			<result name="success">query_job.jsp</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="job_info" class="edu.indiana.d2i.sloan.ui.JobManageAction"
-			method="listJobInfo">
-			<result name="none">manage_job.jsp</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="update_job" class="edu.indiana.d2i.sloan.ui.JobManageAction">
-			<result name="success">update_success.jsp</result>
-			<result name="error">update_error.jsp</result>
-		</action>
-
-		<action name="job_sub_interface" class="edu.indiana.d2i.sloan.ui.JobSubmitAction"
-			method="jobSubmit">
-			<result name="success">upload_submit.jsp</result>
-			<result name="error">error.jsp</result>
-		</action>
-
-		<action name="job_submit" class="edu.indiana.d2i.sloan.ui.JobSubmitAction">
+		<action name="SubmitJobAction" class="edu.indiana.d2i.sloan.ui.JobSubmitAction">
 			<result name="success">submit_success.jsp</result>
-			<result name="error">error.jsp</result>
+			<result name="error">/jsp/error.jsp</result>
 		</action>
+
 	</package>
 </struts>

@@ -26,10 +26,10 @@ public class SigiriConstants {
 	public static final String VMM_HTTP_HOST = "vmm.http.server.host";
 	public static final String VMM_HTTP_PORT = "vmm.http.server.port";
 
-	// default job desp file name used when user uses the form
-	public static final String DEFAULT_JOB_DESP_NAME = "job_desp.xml";
+	// default job description file name used when user uses the form
+	public static final String DEFAULT_JOB_DESP_NAME = "job-desp.xml";
 	public static final String DEFAULT_JOB_DESP_CONTENT_TYPE = "text/xml";
-	
+
 	// token
 	public static final String TOKEN_PATH = "token.path";
 }

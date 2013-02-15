@@ -1,8 +1,7 @@
-#homepage, #aboutpage, #helppage {
-	width: 1200px;	
+#homepage,#aboutpage,#helppage,#searchjobpage,#submitjobpage {
+	width: 1200px;
 }
 
-#loginlink {
+#loginlink,#worksetUploadLink {
 	color: #FF6600;
 }
-

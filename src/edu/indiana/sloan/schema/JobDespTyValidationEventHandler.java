@@ -1,11 +1,14 @@
-package edu.indiana.d2i.sigiri;
+package edu.indiana.sloan.schema;
 
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.ValidationEventLocator;
 
-public class JobDespTyValidationEventHandler implements
-		ValidationEventHandler {
+import org.apache.log4j.Logger;
+
+public class JobDespTyValidationEventHandler implements ValidationEventHandler {
+	private static final Logger logger = Logger
+			.getLogger(JobDespTyValidationEventHandler.class);
 
 	@Override
 	public boolean handleEvent(ValidationEvent ve) {
@@ -14,10 +17,9 @@ public class JobDespTyValidationEventHandler implements
 				|| ve.getSeverity() == ValidationEvent.ERROR) {
 			ValidationEventLocator locator = ve.getLocator();
 			// Print message from validation event
-			System.err.println("Invalid workload config file: " + locator.getURL());
-			System.err.println("Error: " + ve.getMessage());
-			// Output line and column number
-			System.err.println("Error at column " + locator.getColumnNumber()
+			logger.error("Invalid workload config file: " + locator.getURL());
+			logger.error("Error: " + ve.getMessage());
+			logger.error("Error at column " + locator.getColumnNumber()
 					+ ", line " + locator.getLineNumber());
 			return false;
 		}
