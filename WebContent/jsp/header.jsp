@@ -15,10 +15,10 @@
 		<ul>
 			<li><a href="HomeAction"><span>Home</span></a></li>
 			<li><a href="AboutAction"><span>About</span></a></li>
-			<li><a href="PrepareJobInfoAction"><span>Search</span></a>
+			<li><a href="PrepareJobInfoAction"><span>Search Job</span></a>
 			</li>
-			<li><a href="ListAlgorithmAction"><span>Algorithms</span></a></li>
-			<li><a href="ListJobsAction"><span>Results</span></a></li>
+			<li><a href="JobSubmitFormAction"><span>Submit Job</span></a></li>
+			<li><a href="ManageWorkSetAction"><span>Workset</span></a></li>
 			<li><a href="HelpAction"><span>Help</span></a></li>
 
 			<li><s:if test="%{#session['session.token'] == null}">

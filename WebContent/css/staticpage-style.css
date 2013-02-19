@@ -1,7 +1,12 @@
-#homepage,#aboutpage,#helppage,#searchjobpage,#submitjobpage {
+#homepage,#aboutpage,#helppage,#searchjobpage,#submitjobpage,#submitsuccesspage,#manageworksetpage,#updatesetsuccesspage
+	{
 	width: 1200px;
 }
 
-#loginlink,#worksetUploadLink {
+#loginlink,#worksetUploadLink,#searchlink {
 	color: #FF6600;
+}
+
+#jobsuberror {
+	color: red;
 }

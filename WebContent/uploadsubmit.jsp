@@ -7,36 +7,20 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <link rel="stylesheet" type="text/css" href="./css/staticpage-style.css" />
 <title>Job Submission</title>
-<script language="javascript">
-	function validateForm() {
-		var jobId = document.getElementById("jobId");
-		var jobDesp = document.getElementById("jobDesp");
-		var jobArchive = document.getElementById("jobArchive");
-
-		if (jobId.value == null || jobId.value.trim() == "") {
-			alert("Please specify a job title");
-			return false;
-		}
-
-		if (jobDesp.value == null) {
-			alert("Please upload a job description file");
-			return false;
-		}
-
-		if (jobArchive.value == null) {
-			alert("Please upload a job archive file");
-			return false;
-		}
-	}
-</script>
 </head>
 
 <body>
 	<s:include value="./jsp/header.jsp"></s:include>
+
+	<s:if test="hasActionErrors()">
+		<div id="jobsuberror" class="errors">
+			<s:actionerror />
+		</div>
+	</s:if>
+
 	<div id="submitjobpage">
 		<s:form action="SubmitJobAction" method="post"
-			enctype="multipart/form-data" namespace="/" theme="simple"
-			onsubmit="return validateForm()">
+			enctype="multipart/form-data" namespace="/" theme="simple">
 			<fieldset>
 				<legend>Job Title (*)</legend>
 				<table>
@@ -85,24 +69,32 @@
 					<p>Select worksets for job</p>
 					<table border="2" cellspacing="0" cellpadding="2">
 						<tr>
-							<th>Select</th>
 							<th>Workset ID (UUID)</th>
 							<th>File Name</th>
 							<th>Workset Title</th>
 							<th>Workset Description</th>
+							<th>Select</th>
 						</tr>
 						<s:iterator value="worksetInfoList" status="envStatus">
 							<tr>
-								<td><s:checkbox name="worksetCheckbox[%{#envStatus.index}]"
-										fieldValue="false" label="" /></td>
 								<td><s:label
 										key="worksetInfoList[%{#envStatus.index}].UUID" /></td>
+								<s:hidden
+									name="currentWorksetInfoList[%{#envStatus.index}].UUID" />
 								<td><s:label
 										key="worksetInfoList[%{#envStatus.index}].fileName" /></td>
+								<s:hidden
+									name="currentWorksetInfoList[%{#envStatus.index}].fileName" />
 								<td><s:label
 										key="worksetInfoList[%{#envStatus.index}].worksetTitle" /></td>
+								<s:hidden
+									name="currentWorksetInfoList[%{#envStatus.index}].worksetTitle" />
 								<td><s:label
 										key="worksetInfoList[%{#envStatus.index}].worksetDesp" /></td>
+								<s:hidden
+									name="currentWorksetInfoList[%{#envStatus.index}].worksetDesp" />
+								<td><input type="checkbox" value="true"
+									name="worksetCheckbox" /></td>
 							</tr>
 						</s:iterator>
 					</table>
@@ -110,8 +102,8 @@
 				<s:else>
 					<p>
 						Currently no worksets have been uploaded, use <a
-							id="worksetUploadLink" href="UploadWorksetAction">workset
-							upload page</a> to upload.
+							id="worksetUploadLink" href="ManageWorkSetAction">workset
+							management page</a> to upload.
 					</p>
 				</s:else>
 			</fieldset>

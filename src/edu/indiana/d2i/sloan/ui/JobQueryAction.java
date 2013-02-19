@@ -4,52 +4,55 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.apache.struts2.interceptor.SessionAware;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
 import edu.indiana.d2i.sigiri.SigiriAgent;
 import edu.indiana.d2i.sloan.AgentsRepoSingleton;
 import edu.indiana.d2i.sloan.Constants;
-import edu.indiana.d2i.sloan.exception.ErrorType;
 import edu.indiana.d2i.wso2.WSO2Agent;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobId;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobStatus;
 
-@SuppressWarnings("serial")
-public class JobQueryAction extends ActionSupport {
+public class JobQueryAction extends ActionSupport implements SessionAware,
+		LoginRequired, SessionTimeoutRequired {
+
+	private static final long serialVersionUID = 1L;
 	private static final Logger logger = Logger.getLogger(JobQueryAction.class);
-	private static ErrorType errorType = ErrorType.NOERROR;
-	private String username;
-//	private String selectedJob;
+	private Map<String, Object> session;
+
 	private String sigiriJobId;
 	private String sigiriJobStatus;
 	private String selectedJobTitle;
-	private String errMsg;
-	
+
 	private String selectedInsId;
 
 	public String execute() {
-		try {
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("Job instance id %s selected",
+					selectedInsId));
 			logger.debug(String.format("sigiriJobId = %s", sigiriJobId));
-			// logger.debug(String.format("Job %s selected", selectedJob));
-			logger.debug(String.format("Job instance id %s selected", selectedInsId));
 			logger.debug(String.format("Job Title is %s", selectedJobTitle));
-			
+		}
+
+		Map<String, Object> session = ActionContext.getContext().getSession();
+		String username = (String) session.get(Constants.SESSION_USERNAME);
+
+		try {
+
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
 			SigiriAgent sigiriAgent = agentsRepo.getSigiriAgent();
 			WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
-			Properties props = agentsRepo.getProps();
 
-			String pathPrefix = props
-					.getProperty(Constants.PN_WSO2_REPO_PREFIX);
-
-			String jobPath = pathPrefix + username + "/" + selectedInsId + "/";
-
-			logger.info("Sigiri Job id = " + sigiriJobId);
+			String jobPath = PortalConfiguration.getRegistryPrefix() + username
+					+ WSO2Agent.separator + selectedInsId + WSO2Agent.separator;
 
 			JobId jobId = new JobId();
 			jobId.setJobId(sigiriJobId);
@@ -61,7 +64,7 @@ public class JobQueryAction extends ActionSupport {
 			/**
 			 * Also update the job status in job property file
 			 */
-			InputStream is = wso2Agent.getResource(jobPath + "/"
+			InputStream is = wso2Agent.getResource(jobPath
 					+ Constants.WSO2_JOB_PROP_FNAME);
 			Properties jobProp = new Properties();
 			jobProp.load(is);
@@ -72,35 +75,16 @@ public class JobQueryAction extends ActionSupport {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			jobProp.store(os, "");
 
-			wso2Agent.postResource(jobPath + "/"
-					+ Constants.WSO2_JOB_PROP_FNAME, os.toByteArray(), "text");
+			wso2Agent.postResource(jobPath + Constants.WSO2_JOB_PROP_FNAME,
+					os.toByteArray(), "text");
 		} catch (RegistryException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			logger.error(e.getMessage());
-			errorType = ErrorType.REGISTRY_SERVICE_UNREACHABLE;
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
 			return ERROR;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			logger.error(e.getMessage());
-			errorType = ErrorType.SIGIRI_SERVICE_UNREACHABLE;
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
 			return ERROR;
-		} finally {
-			switch (errorType) {
-			case UNKNOWN:
-				errMsg = "Sorry, error occurs when querying the job ...";
-				break;
-			case REGISTRY_SERVICE_UNREACHABLE:
-				errMsg = "Registry service is unreachable now, please try later ...";
-				break;
-			case SIGIRI_SERVICE_UNREACHABLE:
-				errMsg = "Sigiri service is unreachable now, please try later ...";
-				break;
-			case NOERROR:
-				errMsg = "";
-				break;
-			}
 		}
 
 		return SUCCESS;
@@ -122,30 +106,6 @@ public class JobQueryAction extends ActionSupport {
 		this.sigiriJobId = sigiriJobId;
 	}
 
-	public String getErrMsg() {
-		return errMsg;
-	}
-
-	public void setErrMsg(String errMsg) {
-		this.errMsg = errMsg;
-	}
-
-//	public String getSelectedJob() {
-//		return selectedJob;
-//	}
-//
-//	public void setSelectedJob(String selectedJob) {
-//		this.selectedJob = selectedJob;
-//	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
 	public String getSelectedJobTitle() {
 		return selectedJobTitle;
 	}
@@ -160,6 +120,11 @@ public class JobQueryAction extends ActionSupport {
 
 	public void setSelectedInsId(String selectedInsId) {
 		this.selectedInsId = selectedInsId;
+	}
+
+	@Override
+	public void setSession(Map<String, Object> session) {
+		this.session = session;
 	}
 
 }

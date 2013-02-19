@@ -75,6 +75,11 @@
 			<result name="error">/jsp/error.jsp</result>
 		</action>
 
+		<action name="JobQueryAction" class="edu.indiana.d2i.sloan.ui.JobQueryAction">
+			<result name="success">/queryjob.jsp</result>
+			<result name="error">/jsp/error.jsp</result>
+		</action>
+
 		<action name="JobSubmitFormAction" class="edu.indiana.d2i.sloan.ui.JobSubmitAction"
 			method="jobSubmitForm">
 			<result name="success">/uploadsubmit.jsp</result>
@@ -82,7 +87,19 @@
 		</action>
 
 		<action name="SubmitJobAction" class="edu.indiana.d2i.sloan.ui.JobSubmitAction">
-			<result name="success">submit_success.jsp</result>
+			<result name="success">submitsuccess.jsp</result>
+			<result name="input" type="chain">JobSubmitFormAction</result>
+			<result name="error">/jsp/error.jsp</result>
+		</action>
+
+		<action name="ManageWorkSetAction" class="edu.indiana.d2i.sloan.ui.ManageWorkSetAction">
+			<result name="success">manageworkset.jsp</result>
+			<result name="error">/jsp/error.jsp</result>
+		</action>
+
+		<action name="UpdateWorkSetAction" class="edu.indiana.d2i.sloan.ui.ManageWorkSetAction"
+			method="updateWorkSet">
+			<result name="success">updatesetsuccess.jsp</result>
 			<result name="error">/jsp/error.jsp</result>
 		</action>
 

@@ -7,12 +7,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -22,14 +24,18 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
+import edu.indiana.d2i.sigiri.SigiriAgent;
 import edu.indiana.d2i.sloan.AgentsRepoSingleton;
 import edu.indiana.d2i.sloan.Constants;
+import edu.indiana.d2i.sloan.exception.NullSigiriJobIdException;
 import edu.indiana.d2i.sloan.exception.PathNotExistException;
 import edu.indiana.d2i.sloan.schema.internal.InternalSchemaUtil;
 import edu.indiana.d2i.sloan.schema.internal.JobDescriptionType;
 import edu.indiana.d2i.sloan.schema.user.UserSchemaUtil;
+import edu.indiana.d2i.wso2.ArchiveFileExt;
 import edu.indiana.d2i.wso2.JobProperty;
 import edu.indiana.d2i.wso2.WSO2Agent;
+import edu.indiana.extreme.sigiri.SigiriServiceStub.JobStatus;
 import edu.indiana.sloan.schema.SchemaUtil;
 
 public class JobSubmitAction extends ActionSupport implements SessionAware,
@@ -41,6 +47,8 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			.getLogger(JobSubmitAction.class);
 
 	private Map<String, Object> session;
+
+	private String errMsg = null;
 
 	private String selectedJob; // it is the job title given by the user
 
@@ -60,6 +68,9 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		private String fileName;
 		private String worksetTitle;
 		private String worksetDesp;
+
+		public WorksetMetaInfo() {
+		}
 
 		public WorksetMetaInfo(String UUID, String fileName,
 				String worksetTitle, String worksetDesp) {
@@ -101,6 +112,49 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			this.worksetDesp = worksetDesp;
 		}
 
+		@Override
+		public String toString() {
+
+			return String.format(
+					"UUID=%s, title=%s, description=%s, filename=%s", UUID,
+					worksetTitle, worksetDesp, fileName);
+		}
+
+	}
+
+	public boolean isValidateForm() {
+
+		if (getSelectedJob() == null || "".equals(getSelectedJob())) {
+			errMsg = "Please specify a job title";
+			logger.error(errMsg);
+			return false;
+		}
+
+		if (getJobDesp() == null) {
+			errMsg = "Please upload a job description file";
+			logger.error(errMsg);
+			return false;
+		}
+
+		if (!getJobDespFileName().endsWith(".xml")) {
+			errMsg = "Job description must be an .xml file";
+			logger.error(errMsg);
+			return false;
+		}
+
+		if (getJobArchive() == null) {
+			errMsg = "Please upload a job archive file";
+			logger.error(errMsg);
+			return false;
+		}
+
+		if (!ArchiveFileExt.isValidExt(getJobArchiveFileName())) {
+			errMsg = "Job archive file: " + ArchiveFileExt.MSG;
+			logger.error(errMsg);
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -173,11 +227,22 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		return SUCCESS;
 	}
 
+	public void checkError() {
+		if (errMsg == null || "".equals(errMsg)) {
+			return;
+		}
+		addActionError(errMsg);
+	}
+
 	public String jobSubmitForm() {
+		checkError();
 		return loadWorksetInfo();
 	}
 
 	public String execute() {
+
+		if (!isValidateForm())
+			return INPUT;
 
 		if (logger.isDebugEnabled()) {
 
@@ -211,13 +276,21 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
+		} catch (NullSigiriJobIdException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (XMLStreamException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
 		}
 
 		return SUCCESS;
 	}
 
 	private void uploadJob() throws RegistryException, IOException,
-			JAXBException {
+			JAXBException, NullSigiriJobIdException, XMLStreamException {
 
 		Map<String, Object> session = ActionContext.getContext().getSession();
 		String username = (String) session.get(Constants.SESSION_USERNAME);
@@ -225,14 +298,12 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
 		WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
 
-		String repoPrefix = PortalConfiguration.getRegistryPrefix();
-
 		// remove leading and trailing white-spaces
 		selectedJob = selectedJob.trim();
 
 		String internalJobId = UUID.randomUUID().toString();
-		String jobPath = repoPrefix + username + WSO2Agent.separator
-				+ internalJobId + WSO2Agent.separator;
+		String jobPath = PortalConfiguration.getRegistryPrefix() + username
+				+ WSO2Agent.separator + internalJobId + WSO2Agent.separator;
 		logger.info("Created job pathname = " + jobPath);
 
 		/**
@@ -261,9 +332,12 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				userJobDesp, username, internalJobId, jobArchiveFileName,
 				selectedWorksets);
 
+		String internalJobDespStr = InternalSchemaUtil
+				.toXMLString(internalJobDesp);
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("Converted internal job description:\n");
-			logger.debug(InternalSchemaUtil.toXMLString(internalJobDesp));
+			logger.debug(internalJobDespStr);
 		}
 
 		String outPath = null;
@@ -282,9 +356,9 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				Constants.WSO2_JOB_PROP_FNAME, outPath));
 
 		// post job description
+
 		outPath = wso2Agent.postResource(jobPath
-				+ Constants.WSO2_JOB_DESP_FNAME,
-				InternalSchemaUtil.toXMLString(internalJobDesp),
+				+ Constants.WSO2_JOB_DESP_FNAME, internalJobDespStr,
 				jobDespContentType);
 
 		logger.info(String.format("Job description file %s saved to %s",
@@ -309,6 +383,31 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		wso2Agent.createDir(jobTmpOutputHome);
 		logger.info(String.format("Job tmpOutput home dir %s created",
 				jobTmpOutputHome));
+
+		// submit to sigiri service
+		SigiriAgent sigiriAgent = agentsRepo.getSigiriAgent();
+		JobStatus jobStatus = sigiriAgent.submitJob(internalJobDespStr);
+
+		String sigiriJobId = jobStatus.getJobId();
+
+		if (sigiriJobId == null || "".equals(sigiriJobId))
+			throw new NullSigiriJobIdException("None sigiri job id returned");
+
+		/**
+		 * write the job id to registry for future reference
+		 */
+		is = wso2Agent.getResource(jobPath + Constants.WSO2_JOB_PROP_FNAME);
+		jobProp = new Properties();
+		jobProp.load(is);
+		jobProp.setProperty(Constants.SIGIRI_JOB_ID, sigiriJobId);
+		jobProp.setProperty(Constants.SIGIRI_JOB_STATUS, jobStatus.getStatus());
+		jobProp.setProperty(Constants.SIGIRI_JOB_STATUS_UPDATE_TIME, new Date(
+				System.currentTimeMillis()).toString());
+		os = new ByteArrayOutputStream();
+		jobProp.store(os, "");
+
+		wso2Agent.postResource(jobPath + Constants.WSO2_JOB_PROP_FNAME,
+				os.toByteArray(), "text");
 	}
 
 	public String getSelectedJob() {
@@ -386,6 +485,14 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 	@Override
 	public void setSession(Map<String, Object> session) {
 		this.session = session;
+	}
+
+	public String getErrMsg() {
+		return errMsg;
+	}
+
+	public void setErrMsg(String errMsg) {
+		this.errMsg = errMsg;
 	}
 
 }
