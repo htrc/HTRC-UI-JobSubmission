@@ -7,6 +7,71 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <link rel="stylesheet" type="text/css" href="./css/staticpage-style.css" />
 <title>Job Submission</title>
+<script language="javascript">
+	function validate() {
+		try {
+			var table = document.getElementById('job_title_table');
+
+			if (table != null) {
+
+				var row = table.rows[0];
+
+				var title = table.rows[0].cells[1].childNodes[0];
+				if (null == title || '' == title.value.trim()) {
+					var errMsg = 'Job title cannot be empty';
+					alert(errMsg);
+					return false;
+				}
+
+			}
+
+		} catch (e) {
+			alert(e);
+		}
+
+		try {
+			var table = document.getElementById('job_desp_table');
+
+			if (table != null) {
+
+				var row = table.rows[0];
+
+				var desp = table.rows[0].cells[1].childNodes[0];
+				if (null == desp || '' == desp.value) {
+					var errMsg = 'Job description cannot be empty';
+					alert(errMsg);
+					return false;
+				}
+
+			}
+
+		} catch (e) {
+			alert(e);
+		}
+
+		try {
+			var table = document.getElementById('job_archive_table');
+
+			if (table != null) {
+
+				var row = table.rows[0];
+
+				var archive = table.rows[0].cells[1].childNodes[0];
+				if (null == archive || '' == archive.value) {
+					var errMsg = 'Job archive cannot be empty';
+					alert(errMsg);
+					return false;
+				}
+
+			}
+
+		} catch (e) {
+			alert(e);
+		}
+
+		return true;
+	}
+</script>
 </head>
 
 <body>
@@ -20,10 +85,11 @@
 
 	<div id="submitjobpage">
 		<s:form action="SubmitJobAction" method="post"
-			enctype="multipart/form-data" namespace="/" theme="simple">
+			enctype="multipart/form-data" namespace="/" theme="simple"
+			onsubmit="return validate()">
 			<fieldset>
 				<legend>Job Title (*)</legend>
-				<table>
+				<table id="job_title_table">
 					<tr>
 						<td>Job Title :</td>
 						<td><s:textfield id="jobId" name="selectedJob"
@@ -37,7 +103,7 @@
 			<fieldset>
 				<legend>Job Description (*)</legend>
 				<p>Upload job description file</p>
-				<table>
+				<table id="job_desp_table">
 					<tr>
 						<td>Job Description :</td>
 						<td><s:file id="jobDesp" name="jobDesp" key="label.jobdesp" /></td>
@@ -50,7 +116,7 @@
 			<fieldset>
 				<legend>Job Archive (*)</legend>
 				<p>Upload job archive file</p>
-				<table>
+				<table id="job_archive_table">
 					<tr>
 						<td>Job Archive :</td>
 						<td><s:file id="jobArchive" name="jobArchive"
@@ -93,8 +159,8 @@
 										key="worksetInfoList[%{#envStatus.index}].worksetDesp" /></td>
 								<s:hidden
 									name="currentWorksetInfoList[%{#envStatus.index}].worksetDesp" />
-								<td><input type="checkbox" value="true"
-									name="worksetCheckbox" /></td>
+								<td><s:checkbox name="worksetCheckbox"
+										fieldValue="%{#envStatus.index}" /></td>
 							</tr>
 						</s:iterator>
 					</table>

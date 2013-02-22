@@ -6,9 +6,9 @@ import javax.xml.bind.ValidationEventLocator;
 
 import org.apache.log4j.Logger;
 
-public class JobDespTyValidationEventHandler implements ValidationEventHandler {
+public class XMLValidationEventHandler implements ValidationEventHandler {
 	private static final Logger logger = Logger
-			.getLogger(JobDespTyValidationEventHandler.class);
+			.getLogger(XMLValidationEventHandler.class);
 
 	@Override
 	public boolean handleEvent(ValidationEvent ve) {

@@ -61,7 +61,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 	private String jobArchiveFileName;
 
 	private List<WorksetMetaInfo> worksetInfoList;
-	private boolean[] worksetCheckbox;
+	private List<String> worksetCheckbox;
 
 	public static class WorksetMetaInfo {
 		private String UUID;
@@ -122,28 +122,10 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 	}
 
-	public boolean isValidateForm() {
-
-		if (getSelectedJob() == null || "".equals(getSelectedJob())) {
-			errMsg = "Please specify a job title";
-			logger.error(errMsg);
-			return false;
-		}
-
-		if (getJobDesp() == null) {
-			errMsg = "Please upload a job description file";
-			logger.error(errMsg);
-			return false;
-		}
+	public boolean isValidForm() {
 
 		if (!getJobDespFileName().endsWith(".xml")) {
 			errMsg = "Job description must be an .xml file";
-			logger.error(errMsg);
-			return false;
-		}
-
-		if (getJobArchive() == null) {
-			errMsg = "Please upload a job archive file";
 			logger.error(errMsg);
 			return false;
 		}
@@ -206,10 +188,6 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				worksetInfoList.add(worksetMetaInfo);
 			}
 
-			if (worksetInfoList.size() > 0) {
-				worksetCheckbox = new boolean[worksetInfoList.size()];
-				Arrays.fill(worksetCheckbox, false);
-			}
 		} catch (RegistryException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
@@ -241,25 +219,21 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 	public String execute() {
 
-		if (!isValidateForm())
+		if (!isValidForm())
 			return INPUT;
 
 		if (logger.isDebugEnabled()) {
 
-			StringBuilder selectedWorksets = new StringBuilder();
-			for (int i = 0; i < worksetCheckbox.length; i++) {
-				if (worksetCheckbox[i]) {
-					selectedWorksets.append(worksetInfoList.get(i).getUUID()
-							+ "\n");
-				}
-			}
+			if (worksetCheckbox != null) {
+				StringBuilder worksetList = new StringBuilder();
+				for (String idx : worksetCheckbox)
+					worksetList.append(idx + " ");
 
-			if (worksetCheckbox.length > 0) {
-				logger.debug("selected worksets:\n"
-						+ selectedWorksets.toString());
+				logger.debug("Selected worksets = " + worksetList.toString());
 			} else {
 				logger.debug("No worksets being selected");
 			}
+
 		}
 
 		try {
@@ -274,8 +248,9 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			return ERROR;
 		} catch (JAXBException e) {
 			logger.error(e.getMessage(), e);
-			addActionError(e.getMessage());
-			return ERROR;
+			errMsg = "Invalid job description file";
+			logger.error(errMsg);
+			return INPUT;
 		} catch (NullSigiriJobIdException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
@@ -304,7 +279,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		String internalJobId = UUID.randomUUID().toString();
 		String jobPath = PortalConfiguration.getRegistryPrefix() + username
 				+ WSO2Agent.separator + internalJobId + WSO2Agent.separator;
-		logger.info("Created job pathname = " + jobPath);
+		logger.info("Job pathname = " + jobPath);
 
 		/**
 		 * check user uploaded job description xml file, make sure it conforms
@@ -322,9 +297,10 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		}
 
 		List<WorksetMetaInfo> selectedWorksets = new ArrayList<WorksetMetaInfo>();
-		for (int i = 0; i < worksetCheckbox.length; i++) {
-			if (worksetCheckbox[i]) {
-				selectedWorksets.add(worksetInfoList.get(i));
+
+		if (worksetCheckbox != null) {
+			for (String idx : worksetCheckbox) {
+				selectedWorksets.add(worksetInfoList.get(Integer.valueOf(idx)));
 			}
 		}
 
@@ -472,14 +448,6 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 	public void setWorksetInfoList(List<WorksetMetaInfo> worksetInfoList) {
 		this.worksetInfoList = worksetInfoList;
-	}
-
-	public boolean[] getWorksetCheckbox() {
-		return worksetCheckbox;
-	}
-
-	public void setWorksetCheckbox(boolean[] worksetCheckbox) {
-		this.worksetCheckbox = worksetCheckbox;
 	}
 
 	@Override

@@ -90,6 +90,24 @@
 				// first row is table header
 				for ( var i = 1; i < rowCount; i++) {
 					var row = table.rows[i];
+
+					var textbox_title = row.cells[2].childNodes[0];
+					if (null == textbox_title
+							|| '' == textbox_title.value.trim()) {
+						var errMsg = 'In management form, line # ' + i
+								+ ': workset title cannot be empty';
+						alert(errMsg);
+						return false;
+					}
+
+					var textbox_desp = row.cells[3].childNodes[0];
+					if (null == textbox_desp || '' == textbox_desp.value.trim()) {
+						var errMsg = 'In management form, line # ' + i
+								+ ': workset description cannot be empty';
+						alert(errMsg);
+						return false;
+					}
+
 					var filebox = row.cells[4].childNodes[0];
 					if (null != filebox && '' != filebox.value) {
 						update_file_list = update_file_list + ' ' + (i - 1);
@@ -98,8 +116,8 @@
 
 				var updatelist = document.getElementById('update_list');
 				updatelist.value = update_file_list;
-				
-				alert(updatelist.value);
+
+				// alert(updatelist.value);
 			}
 
 		} catch (e) {
@@ -107,6 +125,55 @@
 		}
 
 		onUnCheck('workset_table');
+
+		try {
+			var table = document.getElementById('workset_table');
+
+			if (table != null) {
+
+				var rowCount = table.rows.length;
+
+				// first row is table header
+				for ( var i = 1; i < rowCount; i++) {
+					var row = table.rows[i];
+
+					var textbox_title = row.cells[0].childNodes[0];
+					if (null == textbox_title
+							|| '' == textbox_title.value.trim()) {
+						var errMsg = 'In upload form, line # ' + i
+								+ ': workset title cannot be empty';
+						alert(errMsg);
+						return false;
+					}
+
+					var textbox_desp = row.cells[1].childNodes[0];
+					if (null == textbox_desp || '' == textbox_desp.value.trim()) {
+						var errMsg = 'In upload form, line # ' + i
+								+ ': workset description cannot be empty';
+						alert(errMsg);
+						return false;
+					}
+
+					var filebox = row.cells[2].childNodes[0];
+					if (null == filebox || '' == filebox.value) {
+						var errMsg = 'In upload form, line # ' + i
+								+ ': workset archive cannot be empty';
+						alert(errMsg);
+						return false;
+					}
+				}
+
+				var updatelist = document.getElementById('update_list');
+				updatelist.value = update_file_list;
+
+				// alert(updatelist.value);
+			}
+
+		} catch (e) {
+			alert(e);
+		}
+
+		return true;
 	}
 </script>
 </head>

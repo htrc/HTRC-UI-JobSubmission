@@ -1,12 +1,10 @@
 package edu.indiana.d2i.sloan.ui;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -55,6 +53,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 	 * @return
 	 */
 	private String loadWorksetInfo() {
+
 		Map<String, Object> session = ActionContext.getContext().getSession();
 		String username = (String) session.get(Constants.SESSION_USERNAME);
 

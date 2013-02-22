@@ -97,7 +97,7 @@ public class SchemaUtil {
 		tokenPath.setSrcPath(PortalConfiguration.getRegistryPrefix() + username
 				+ WSO2Agent.separator + Constants.OAUTH2_TOKEN_FNAME);
 		tokenPath.setSrcType(TransferType.WSO_2_REGISTRY);
-		tokenPath.setDestPath("");
+		tokenPath.setDestPath(Constants.OAUTH2_TOKEN_FNAME);
 		tokenPath.setDestType(TransferType.HEADNODE);
 
 		internalJobDesp.setTokenPath(tokenPath);
@@ -109,7 +109,7 @@ public class SchemaUtil {
 				+ PortalConfiguration.getRegistryArchiveFolder()
 				+ WSO2Agent.separator + archiveFileName);
 		archive.setSrcType(TransferType.WSO_2_REGISTRY);
-		archive.setDestPath("");
+		archive.setDestPath(archiveFileName);
 		archive.setDestType(TransferType.HEADNODE);
 
 		internalJobDesp.setArchive(archive);
@@ -124,7 +124,7 @@ public class SchemaUtil {
 					+ username + WSO2Agent.separator + worksetMeta.getUUID()
 					+ WSO2Agent.separator + worksetMeta.getFileName());
 			workset.setSrcType(TransferType.WSO_2_REGISTRY);
-			workset.setDestPath("");
+			workset.setDestPath(worksetMeta.getFileName());
 			workset.setDestType(TransferType.HEADNODE);
 
 			jobInputSet.add(workset);
