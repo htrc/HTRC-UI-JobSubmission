@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:job xmlns:ns2="http://www.globus.org/namespaces/2004/10/gram/job/description">
 	<commandLine>wordcount.jar edu.indiana.d2i.sloan.example.MapReduceWC
-		author:JaneAusten volid.txt wc_result</commandLine>
+		author:JaneAusten volid.txt wc_result
+	</commandLine>
 
 	<jobType>mapreduce</jobType>
 
@@ -17,4 +18,5 @@
 
 	<VMCount>2</VMCount>
 	<executionTime>00:30:00</executionTime>
+
 </ns2:job>

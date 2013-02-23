@@ -8,6 +8,10 @@
 <link rel="stylesheet" type="text/css" href="./css/staticpage-style.css" />
 <title>Manage Workset</title>
 <script language="javascript">
+	String.prototype.endsWith = function(suffix) {
+		return this.indexOf(suffix, this.length - suffix.length) !== -1;
+	};
+
 	function addEntry(tableId) {
 
 		var table = document.getElementById(tableId);
@@ -79,6 +83,11 @@
 	}
 
 	function validate() {
+		var validArchiveSuffix = new Array(".zip", ".tar");
+
+		var current_wset_table_empty = true;
+		var upload_wset_table_empty = true;
+
 		try {
 			var table = document.getElementById('current_wset_table');
 
@@ -86,6 +95,9 @@
 				var update_file_list = '';
 
 				var rowCount = table.rows.length;
+
+				if (rowCount > 1)
+					current_wset_table_empty = false;
 
 				// first row is table header
 				for ( var i = 1; i < rowCount; i++) {
@@ -110,6 +122,23 @@
 
 					var filebox = row.cells[4].childNodes[0];
 					if (null != filebox && '' != filebox.value) {
+
+						var isvalid = false;
+
+						for ( var j = 0; j < validArchiveSuffix.length; j++) {
+							if (filebox.value.endsWith(validArchiveSuffix[j])) {
+								isvalid = true;
+								break;
+							}
+						}
+
+						if (!isvalid) {
+							var errMsg = 'In management form, line # ' + i
+									+ ': workset can only be .zip, .tar file';
+							alert(errMsg);
+							return false;
+						}
+
 						update_file_list = update_file_list + ' ' + (i - 1);
 					}
 				}
@@ -132,6 +161,9 @@
 			if (table != null) {
 
 				var rowCount = table.rows.length;
+
+				if (rowCount > 1)
+					upload_wset_table_empty = false;
 
 				// first row is table header
 				for ( var i = 1; i < rowCount; i++) {
@@ -161,16 +193,34 @@
 						alert(errMsg);
 						return false;
 					}
+
+					var isvalid = false;
+
+					for ( var j = 0; j < validArchiveSuffix.length; j++) {
+						if (filebox.value.endsWith(validArchiveSuffix[j])) {
+							isvalid = true;
+							break;
+						}
+					}
+
+					if (!isvalid) {
+						var errMsg = 'In upload form, line # ' + i
+								+ ': workset can only be .zip, .tar file';
+						alert(errMsg);
+						return false;
+					}
 				}
 
-				var updatelist = document.getElementById('update_list');
-				updatelist.value = update_file_list;
-
-				// alert(updatelist.value);
 			}
 
 		} catch (e) {
 			alert(e);
+		}
+
+		if (current_wset_table_empty && upload_wset_table_empty) {
+			var errMsg = 'Nothing to update';
+			alert(errMsg);
+			return false;
 		}
 
 		return true;

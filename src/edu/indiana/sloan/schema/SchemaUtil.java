@@ -3,6 +3,7 @@ package edu.indiana.sloan.schema;
 import java.io.IOException;
 import java.util.List;
 
+import edu.indiana.d2i.registryext.RegistryExtAgent;
 import edu.indiana.d2i.sloan.Constants;
 import edu.indiana.d2i.sloan.schema.internal.JobDescriptionType;
 import edu.indiana.d2i.sloan.schema.internal.JobTypeEnumeration;
@@ -11,7 +12,6 @@ import edu.indiana.d2i.sloan.schema.internal.TransferType;
 import edu.indiana.d2i.sloan.schema.internal.WorkSets;
 import edu.indiana.d2i.sloan.ui.PortalConfiguration;
 import edu.indiana.d2i.sloan.ui.JobSubmitAction.WorksetMetaInfo;
-import edu.indiana.d2i.wso2.WSO2Agent;
 
 public class SchemaUtil {
 
@@ -82,9 +82,7 @@ public class SchemaUtil {
 
 			/* set dest path */
 			internalFileOut.setDestPath(PortalConfiguration
-					.getRegistryTmpOutputPrefix()
-					+ username
-					+ WSO2Agent.separator + jobInternalId);
+					.getRegistryJobPrefix() + jobInternalId);
 
 			/* set dest type */
 			internalFileOut.setDestType(TransferType.WSO_2_REGISTRY);
@@ -94,8 +92,8 @@ public class SchemaUtil {
 
 		/* set token path */
 		TransferRequestType tokenPath = new TransferRequestType();
-		tokenPath.setSrcPath(PortalConfiguration.getRegistryPrefix() + username
-				+ WSO2Agent.separator + Constants.OAUTH2_TOKEN_FNAME);
+		tokenPath.setSrcPath(PortalConfiguration.getRegistryJobPrefix()
+				+ Constants.OAUTH2_TOKEN_FNAME);
 		tokenPath.setSrcType(TransferType.WSO_2_REGISTRY);
 		tokenPath.setDestPath(Constants.OAUTH2_TOKEN_FNAME);
 		tokenPath.setDestType(TransferType.HEADNODE);
@@ -104,10 +102,10 @@ public class SchemaUtil {
 
 		/* set archive path */
 		TransferRequestType archive = new TransferRequestType();
-		archive.setSrcPath(PortalConfiguration.getRegistryPrefix() + username
-				+ WSO2Agent.separator + jobInternalId + WSO2Agent.separator
+		archive.setSrcPath(PortalConfiguration.getRegistryJobPrefix()
+				+ jobInternalId + RegistryExtAgent.separator
 				+ PortalConfiguration.getRegistryArchiveFolder()
-				+ WSO2Agent.separator + archiveFileName);
+				+ RegistryExtAgent.separator + archiveFileName);
 		archive.setSrcType(TransferType.WSO_2_REGISTRY);
 		archive.setDestPath(archiveFileName);
 		archive.setDestType(TransferType.HEADNODE);
@@ -115,22 +113,27 @@ public class SchemaUtil {
 		internalJobDesp.setArchive(archive);
 
 		/* set worksets */
-		WorkSets worksets = new WorkSets();
-		List<TransferRequestType> jobInputSet = worksets.getWorkset();
 
-		for (WorksetMetaInfo worksetMeta : worksetInfoList) {
-			TransferRequestType workset = new TransferRequestType();
-			workset.setSrcPath(PortalConfiguration.getRegistryWorksetPrefix()
-					+ username + WSO2Agent.separator + worksetMeta.getUUID()
-					+ WSO2Agent.separator + worksetMeta.getFileName());
-			workset.setSrcType(TransferType.WSO_2_REGISTRY);
-			workset.setDestPath(worksetMeta.getFileName());
-			workset.setDestType(TransferType.HEADNODE);
+		if (worksetInfoList != null && worksetInfoList.size() > 0) {
+			WorkSets worksets = new WorkSets();
+			List<TransferRequestType> jobInputSet = worksets.getWorkset();
 
-			jobInputSet.add(workset);
+			for (WorksetMetaInfo worksetMeta : worksetInfoList) {
+				TransferRequestType workset = new TransferRequestType();
+				workset.setSrcPath(PortalConfiguration
+						.getRegistryWorksetPrefix()
+						+ worksetMeta.getUUID()
+						+ RegistryExtAgent.separator
+						+ worksetMeta.getFileName());
+				workset.setSrcType(TransferType.WSO_2_REGISTRY);
+				workset.setDestPath(worksetMeta.getFileName());
+				workset.setDestType(TransferType.HEADNODE);
+
+				jobInputSet.add(workset);
+			}
+
+			internalJobDesp.setWorksets(worksets);
 		}
-
-		internalJobDesp.setWorksets(worksets);
 
 		return internalJobDesp;
 	}

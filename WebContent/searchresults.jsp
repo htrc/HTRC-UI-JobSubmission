@@ -14,14 +14,15 @@
 <body>
 	<s:include value="./jsp/header.jsp"></s:include>
 	<div id="searchjobpage">
-		<h4>
-			Jobs which match string "
-			<s:property value="selectedJobTitle" />
-			"
-		</h4>
 
-		<s:form action="op_job" method="post" namespace="/" theme="simple">
+		<s:form action="PrepareJobQueryAction" method="post" namespace="/"
+			theme="simple">
 			<s:if test="jobInfoList != null && jobInfoList.size() > 0">
+				<h4>
+					Jobs which match search string "
+					<s:property value="selectedJobTitle" />
+					"
+				</h4>
 				<table border="2" cellspacing="0" cellpadding="2">
 					<tr>
 						<th>#</th>
@@ -34,8 +35,8 @@
 					</tr>
 					<s:iterator value="jobInsList" status="envStatus">
 						<tr>
-							<td><s:radio name="selectedJob" list="#{key:label}"
-									theme="simple" /></td>
+							<td><s:radio id="selectedRadio" name="selectedJob"
+									list="#{key:label}" theme="simple" value="defaultJob" /></td>
 
 							<td><s:label key="jobInfoList[%{#envStatus.index}].jobTitle" /></td>
 							<td><s:label
@@ -50,11 +51,18 @@
 						</tr>
 					</s:iterator>
 				</table>
+				<br />
+				<s:hidden name="selectedJobTitle" value="%{selectedJobTitle}" />
+				<s:submit key="label.query" align="center" />
 			</s:if>
-
-			<br />
-			<s:hidden name="selectedJobTitle" value="%{selectedJobTitle}" />
-			<s:submit key="label.query" align="center" />
+			<s:else>
+				<h4>
+					No jobs match search string "
+					<s:property value="selectedJobTitle" />
+					", <a id="searchlink" href="PrepareJobInfoAction">Back to job
+						search page</a>
+				</h4>
+			</s:else>
 		</s:form>
 	</div>
 </body>

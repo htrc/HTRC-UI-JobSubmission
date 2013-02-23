@@ -67,10 +67,11 @@
 		<action name="SearchResultAction" class="edu.indiana.d2i.sloan.ui.SearchResult"
 			method="showSearchRes">
 			<result name="success">searchresults.jsp</result>
+			<result name="input" type="chain">PrepareJobInfoAction</result>
 			<result name="error">/jsp/error.jsp</result>
 		</action>
 
-		<action name="ListSearchResultAction" class="edu.indiana.d2i.sloan.ui.SearchResult">
+		<action name="PrepareJobQueryAction" class="edu.indiana.d2i.sloan.ui.SearchResult">
 			<result name="success" type="chain">JobQueryAction</result>
 			<result name="error">/jsp/error.jsp</result>
 		</action>
@@ -100,7 +101,6 @@
 		<action name="UpdateWorkSetAction" class="edu.indiana.d2i.sloan.ui.ManageWorkSetAction"
 			method="updateWorkSet">
 			<result name="success">updatesetsuccess.jsp</result>
-			<result name="input" type="chain">ManageWorkSetAction</result>
 			<result name="error">/jsp/error.jsp</result>
 		</action>
 

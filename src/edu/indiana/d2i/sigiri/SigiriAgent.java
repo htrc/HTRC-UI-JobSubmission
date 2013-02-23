@@ -32,7 +32,7 @@ public class SigiriAgent {
 		xmlContent.setExtraElement(omelement);
 		parameters.setJobDescriptionXML(xmlContent);
 		parameters.setCallbackURL("www.google.com");
-
+		
 		return stub.submitJob(parameters);
 	}
 

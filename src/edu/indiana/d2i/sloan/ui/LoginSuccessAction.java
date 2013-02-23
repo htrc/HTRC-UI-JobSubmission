@@ -31,14 +31,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.struts2.interceptor.ServletRequestAware;
 import org.apache.struts2.interceptor.ServletResponseAware;
 import org.apache.struts2.interceptor.SessionAware;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
-import edu.indiana.d2i.sloan.AgentsRepoSingleton;
 import edu.indiana.d2i.sloan.Constants;
-import edu.indiana.d2i.wso2.WSO2Agent;
 
 public class LoginSuccessAction extends ActionSupport implements
 		ServletRequestAware, ServletResponseAware, SessionAware {
@@ -192,9 +189,6 @@ public class LoginSuccessAction extends ActionSupport implements
 						Constants.SESSION_EXIST_BEFORE, "true")); // username
 				session.put(Constants.SESSION_EXIST_BEFORE, new Boolean(false));
 
-				// check registry
-				checkRegistry(userName);
-
 				return SUCCESS;
 			} catch (OAuthProblemException e) {
 				logger.error(e.getError(), e);
@@ -208,53 +202,9 @@ public class LoginSuccessAction extends ActionSupport implements
 				logger.error(e.getMessage(), e);
 				addActionError(e.getMessage());
 				return ERROR;
-			} catch (RegistryException e) {
-				logger.error(e.getMessage(), e);
-				addActionError(e.getMessage());
-				return ERROR;
 			}
 		}
 		return SUCCESS;
-	}
-
-	public void checkRegistry(String username) throws RegistryException,
-			IOException {
-		AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
-		WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
-
-		// Check whether user repo home directory exists, if not, create it
-		String repoPrefix = PortalConfiguration.getRegistryPrefix();
-		String userHome = repoPrefix + username;
-		if (!wso2Agent.isResourceExist(userHome)) {
-			wso2Agent.createDir(userHome);
-			logger.info(String.format(
-					"%s's home directory doesn't exist, create it", username));
-			logger.info(String.format("Home dir %s created", userHome));
-		}
-
-		// Check whether user's workset home exists, if not, create it
-		String worksetRepoPrefix = PortalConfiguration
-				.getRegistryWorksetPrefix();
-		String worksetHome = worksetRepoPrefix + username;
-		if (!wso2Agent.isResourceExist(worksetHome)) {
-			wso2Agent.createDir(worksetHome);
-			logger.info(String.format(
-					"%s's workset home doesn't exist, create it", username));
-			logger.info(String.format("Workset home dir %s created",
-					worksetHome));
-		}
-
-		// Check whether user's tmpoutput home exists, if not, create it
-		String tmpOutputRepoPrefix = PortalConfiguration
-				.getRegistryTmpOutputPrefix();
-		String tmpOutputHome = tmpOutputRepoPrefix + username;
-		if (!wso2Agent.isResourceExist(tmpOutputHome)) {
-			wso2Agent.createDir(tmpOutputHome);
-			logger.info(String.format(
-					"%s's tmpOutput home doesn't exist, create it", username));
-			logger.info(String.format("tmpOutput home dir %s created",
-					tmpOutputHome));
-		}
 	}
 
 	@Override

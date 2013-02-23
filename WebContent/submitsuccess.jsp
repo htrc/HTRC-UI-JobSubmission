@@ -13,16 +13,16 @@
 	<s:include value="./jsp/header.jsp"></s:include>
 	<div id="submitsuccesspage">
 		<h3>
-			Job
+			Job "
 			<s:property value="selectedJob" />
-			has been submitted to Sloan Cloud successfully
+			" has been submitted to Sloan Cloud successfully
 		</h3>
 		<br />
 
-		<p>
+		<h4>
 			<a id="searchlink" href="PrepareJobInfoAction">Back to job search
 				page</a>
-		</p>
+		</h4>
 	</div>
 </body>
 </html>

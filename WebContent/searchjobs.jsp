@@ -17,10 +17,15 @@
 			<a href="JobSubmitFormAction"><span>Create a new job</span></a>
 		</h3>
 
+		<s:if test="hasActionErrors()">
+			<div id="jobsuberror" class="errors">
+				<s:actionerror />
+			</div>
+		</s:if>
+
 		<s:form action="JobSearchAction" method="post" namespace="/"
 			theme="simple">
 			<s:if test="jobTitles != null && jobTitles.size() > 0">
-				<br />
 				<h4>Use * to search all jobs</h4>
 				<sx:autocompleter label="Search a job" list="jobTitles"
 					name="selectedJobTitle" />

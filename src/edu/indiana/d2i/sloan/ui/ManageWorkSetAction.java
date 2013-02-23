@@ -1,28 +1,33 @@
 package edu.indiana.d2i.sloan.ui;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.commons.io.FileUtils;
+import javax.xml.bind.JAXBException;
+
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.SessionAware;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
+import edu.indiana.d2i.registryext.RegistryExtAgent;
+import edu.indiana.d2i.registryext.RegistryExtAgent.GetResourceResponse;
+import edu.indiana.d2i.registryext.RegistryExtAgent.ListResourceResponse;
+import edu.indiana.d2i.registryext.RegistryExtAgent.ResourceISType;
+import edu.indiana.d2i.registryext.schema.Entry;
 import edu.indiana.d2i.sloan.AgentsRepoSingleton;
 import edu.indiana.d2i.sloan.Constants;
-import edu.indiana.d2i.sloan.exception.PathNotExistException;
+import edu.indiana.d2i.sloan.exception.RegistryExtException;
 import edu.indiana.d2i.sloan.ui.JobSubmitAction.WorksetMetaInfo;
-import edu.indiana.d2i.wso2.WSO2Agent;
 
 public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 		LoginRequired, SessionTimeoutRequired {
@@ -31,6 +36,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 			.getLogger(ManageWorkSetAction.class);
 
 	private static final long serialVersionUID = 1L;
+	@SuppressWarnings("unused")
 	private Map<String, Object> session;
 
 	private List<WorksetMetaInfo> currentWorksetInfoList;
@@ -59,19 +65,41 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 
 		try {
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
-			WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
+			RegistryExtAgent registryExtAgent = agentsRepo
+					.getRegistryExtAgent();
 
-			String worksetRepoPrefix = PortalConfiguration
-					.getRegistryWorksetPrefix();
+			StringBuilder requestURL = new StringBuilder();
+			ListResourceResponse response = registryExtAgent
+					.getAllChildren(requestURL
+							.append(PortalConfiguration
+									.getRegistryWorksetPrefix())
+							.append("?user=").append(username).toString());
 
-			List<String> userWorksetRepo = wso2Agent
-					.getAllChildren(worksetRepoPrefix + username);
+			List<String> userWorksetRepo = new ArrayList<String>();
+
+			if (response.getStatusCode() == 404) {
+				logger.warn(String.format("Path %s doesn't exist",
+						requestURL.toString()));
+			} else if (response.getStatusCode() == 200) {
+				for (Entry entry : response.getEntries().getEntry()) {
+					userWorksetRepo.add(entry.getName());
+				}
+			}
 
 			currentWorksetInfoList = new ArrayList<WorksetMetaInfo>();
 
 			for (String worksetId : userWorksetRepo) {
-				List<String> items = wso2Agent.getAllChildren(worksetRepoPrefix
-						+ username + WSO2Agent.separator + worksetId);
+
+				StringBuilder url = new StringBuilder();
+				ListResourceResponse resp = registryExtAgent.getAllChildren(url
+						.append(PortalConfiguration.getRegistryWorksetPrefix())
+						.append(worksetId).append("?user=").append(username)
+						.toString());
+
+				List<String> items = new ArrayList<String>();
+				for (Entry entry : resp.getEntries().getEntry()) {
+					items.add(entry.getName());
+				}
 
 				String fileName = null;
 				for (String item : items) {
@@ -81,12 +109,18 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 					}
 				}
 
-				InputStream is = wso2Agent.getResource(worksetRepoPrefix
-						+ username + WSO2Agent.separator + worksetId
-						+ WSO2Agent.separator
-						+ Constants.WSO2_WORKSET_META_FNAME);
+				url.setLength(0);
+				GetResourceResponse getResp = registryExtAgent.getResource(url
+						.append(PortalConfiguration.getRegistryWorksetPrefix())
+						.append(worksetId).append(RegistryExtAgent.separator)
+						.append(Constants.WSO2_WORKSET_META_FNAME)
+						.append("?user=").append(username).toString());
+
 				Properties worksetMeta = new Properties();
-				worksetMeta.load(is);
+				worksetMeta.load(getResp.getIs());
+
+				// close connection
+				registryExtAgent.closeConnection(getResp.getMethod());
 
 				WorksetMetaInfo worksetMetaInfo = new WorksetMetaInfo(
 						worksetId, fileName, worksetMeta.getProperty(
@@ -97,15 +131,19 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 				currentWorksetInfoList.add(worksetMetaInfo);
 			}
 
-		} catch (RegistryException e) {
-			logger.error(e.getMessage(), e);
-			addActionError(e.getMessage());
-			return ERROR;
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
-		} catch (PathNotExistException e) {
+		} catch (RegistryExtException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (IllegalStateException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (JAXBException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
@@ -115,11 +153,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 	}
 
 	public String execute() {
-		String retValue = loadWorksetInfo();
-		if (!SUCCESS.equals(retValue))
-			return retValue;
 
-		return SUCCESS;
+		return loadWorksetInfo();
 	}
 
 	public String updateWorkSet() {
@@ -149,12 +184,11 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 				for (String idx : currentWorksetCheckbox)
 					deletionList.append(idx + " ");
 
-				logger.debug("Items to be deleted = " + deletionList.toString());
+				logger.debug("Items to be deleted=" + deletionList.toString());
 			}
 
 			if (currentWorksetNewFile != null)
-				logger.debug("new file length = "
-						+ currentWorksetNewFile.length);
+				logger.debug("new file length=" + currentWorksetNewFile.length);
 
 			if (currentWorksetInfoList != null
 					&& currentWorksetInfoList.size() > 0) {
@@ -170,12 +204,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 		AgentsRepoSingleton agentsRepo;
 		try {
 			agentsRepo = AgentsRepoSingleton.getInstance();
-			WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
-
-			String userWorksetRepoPrefix = PortalConfiguration
-					.getRegistryWorksetPrefix()
-					+ username
-					+ WSO2Agent.separator;
+			RegistryExtAgent registryExtAgent = agentsRepo
+					.getRegistryExtAgent();
 
 			// update existing worksets
 
@@ -184,7 +214,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 			if (currentWorksetInfoList != null
 					&& currentWorksetInfoList.size() > 0) {
 				for (int i = 0; i < currentWorksetInfoList.size(); i++) {
-					String worksetPath = userWorksetRepoPrefix
+					String worksetPath = PortalConfiguration
+							.getRegistryWorksetPrefix()
 							+ currentWorksetInfoList.get(i).getUUID();
 
 					if ((currentWorksetCheckbox != null)
@@ -194,7 +225,10 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 						logger.info(String.format("User %s deleted workset %s",
 								username, worksetPath));
 
-						wso2Agent.deleteResource(worksetPath);
+						registryExtAgent.deleteResource(new StringBuilder()
+								.append(worksetPath).append("?user=")
+								.append(username).toString());
+
 					} else {
 
 						// user uploads a new workset archive file
@@ -206,8 +240,17 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 									currentWorksetNewFileFileName[idx]));
 
 							// remove old workset archive file
-							List<String> items = wso2Agent
-									.getAllChildren(worksetPath);
+
+							ListResourceResponse resp = registryExtAgent
+									.getAllChildren(new StringBuilder()
+											.append(worksetPath)
+											.append("?user=").append(username)
+											.toString());
+
+							List<String> items = new ArrayList<String>();
+							for (Entry entry : resp.getEntries().getEntry()) {
+								items.add(entry.getName());
+							}
 
 							String archiveFileName = null;
 							for (String item : items) {
@@ -218,22 +261,30 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 								}
 							}
 
-							archiveFileName = worksetPath + WSO2Agent.separator
-									+ archiveFileName;
-							wso2Agent.deleteResource(archiveFileName);
+							registryExtAgent.deleteResource(new StringBuilder()
+									.append(worksetPath)
+									.append(RegistryExtAgent.separator)
+									.append(archiveFileName).append("?user=")
+									.append(username).toString());
+
 							logger.info("Deleted old workset file "
 									+ archiveFileName);
 
-							String path = worksetPath + WSO2Agent.separator
-									+ currentWorksetNewFileFileName[idx];
-
 							// upload archive file
-							String outPath = wso2Agent
+							String outPath = registryExtAgent
 									.postResource(
-											path,
-											FileUtils
-													.readFileToByteArray(currentWorksetNewFile[idx]),
-											currentWorksetNewFileContentType[idx]);
+											new StringBuilder()
+													.append(worksetPath)
+													.append(RegistryExtAgent.separator)
+													.append(currentWorksetNewFileFileName[idx])
+													.append("?user=")
+													.append(username)
+													.toString(),
+											new ResourceISType(
+													new FileInputStream(
+															currentWorksetNewFile[idx]),
+													currentWorksetNewFileFileName[idx],
+													currentWorksetNewFileContentType[idx]));
 
 							logger.info(String
 									.format("New workset %s saved to %s",
@@ -246,9 +297,6 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 						}
 
 						// update metadata file anyway
-						String metaFilePath = worksetPath + WSO2Agent.separator
-								+ Constants.WSO2_WORKSET_META_FNAME;
-
 						Properties worksetMeta = new Properties();
 
 						worksetMeta
@@ -263,8 +311,20 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 						ByteArrayOutputStream os = new ByteArrayOutputStream();
 						worksetMeta.store(os, "");
 
-						String outPath = wso2Agent.postResource(metaFilePath,
-								os.toByteArray(), "text");
+						String outPath = registryExtAgent
+								.postResource(
+										new StringBuilder()
+												.append(worksetPath)
+												.append(RegistryExtAgent.separator)
+												.append(Constants.WSO2_WORKSET_META_FNAME)
+												.append("?user=")
+												.append(username).toString(),
+										new ResourceISType(
+												new ByteArrayInputStream(os
+														.toByteArray()),
+												Constants.WSO2_WORKSET_META_FNAME,
+												"text/plain"));
+
 						logger.info(String.format(
 								"Updated metafile %s saved to %s",
 								Constants.WSO2_WORKSET_META_FNAME, outPath));
@@ -277,13 +337,21 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 
 				for (int i = 0; i < newWorkset.size(); i++) {
 					String worksetId = UUID.randomUUID().toString();
-					String path = userWorksetRepoPrefix + worksetId
-							+ WSO2Agent.separator + newWorksetFileName.get(i);
+
+					String worksetPath = PortalConfiguration
+							.getRegistryWorksetPrefix() + worksetId;
 
 					// upload archive file
-					String outPath = wso2Agent.postResource(path,
-							FileUtils.readFileToByteArray(newWorkset.get(i)),
-							newWorksetContentType.get(i));
+
+					String outPath = registryExtAgent.postResource(
+							new StringBuilder().append(worksetPath)
+									.append(RegistryExtAgent.separator)
+									.append(newWorksetFileName.get(i))
+									.append("?user=").append(username)
+									.toString(), new ResourceISType(
+									new FileInputStream(newWorkset.get(i)),
+									newWorksetFileName.get(i),
+									newWorksetContentType.get(i)));
 
 					logger.info(String.format("New workset %s saved to %s",
 							newWorksetFileName.get(i), outPath));
@@ -301,26 +369,35 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 					ByteArrayOutputStream os = new ByteArrayOutputStream();
 					worksetMeta.store(os, "");
 
-					String metaFilePath = userWorksetRepoPrefix + worksetId
-							+ WSO2Agent.separator
-							+ Constants.WSO2_WORKSET_META_FNAME;
-					outPath = wso2Agent.postResource(metaFilePath,
-							os.toByteArray(), "text");
+					outPath = registryExtAgent.postResource(
+							new StringBuilder().append(worksetPath)
+									.append(RegistryExtAgent.separator)
+									.append(Constants.WSO2_WORKSET_META_FNAME)
+									.append("?user=").append(username)
+									.toString(), new ResourceISType(
+									new ByteArrayInputStream(os.toByteArray()),
+									Constants.WSO2_WORKSET_META_FNAME,
+									"text/plain"));
+
 					logger.info(String.format("New metafile %s saved to %s",
 							Constants.WSO2_WORKSET_META_FNAME, outPath));
 				}
 
 			}
 
-		} catch (RegistryException e) {
-			logger.error(e.getMessage(), e);
-			addActionError(e.getMessage());
-			return ERROR;
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
-		} catch (PathNotExistException e) {
+		} catch (RegistryExtException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (IllegalStateException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (JAXBException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;

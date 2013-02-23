@@ -40,23 +40,13 @@ public class Constants {
 	public static String OAUTH2_REFRESH_TOKEN = "refresh_token";
 	public static String OAUTH2_EXPIRE = "expires_in";
 
-	public static final String PN_OAUTH2_SERVER_EPR = "";
-	public static final String PN_OAUTH2_SERVER_SELF_SIGNED = "";
-
 	// WSO2 Registry related properties -- configuration
 	public static final String PN_WSO2_SERVER_EPR = "wso2.registry.server.epr";
-	public static final String PN_WSO2_ROOT_UNAME = "wso2.registry.root.name";
-	public static final String PN_WSO2_ROOT_PASS = "wso2.registry.root.pass";
-	public static final String PN_WSO2_STORE_PASS = "wso2.registry.store.pass";
-	public static final String PN_WSO2_STORE_TYPE = "wso2.registry.store.type";
-	public static final String PN_WSO2_TRUESTORE_PATH = "wso2.registry.truestore.path";
-	public static final String PN_WSO2_AXIS2_REPO = "wso2.axis2.repo";
-	public static final String PN_WSO2_AXIS2_CONF = "wso2.axis2.conf";
+	public static final String PN_WSO2_SELF_SIGN = "wso2.registry.self.sign";
 
 	// WSO2 Registry related properties -- internal directory structure
-	public static final String PN_WSO2_REPO_PREFIX = "wso2.registry.repo.prefix";
 	public static final String PN_WSO2_WORKSET_PREFIX = "wso2.registry.workset.prefix";
-	public static final String PN_WSO2_TMPOUTPUT_PREFIX = "wso2.registry.tmpoutput.prefix";
+	public static final String PN_WSO2_JOB_PREFIX = "wso2.registry.job.prefix";
 	public static final String PN_WSO2_REPO_JOB_ARCHIVE = "wso2.registry.repo.job.archive";
 
 	public static final String OAUTH2_TOKEN_FNAME = "token.tmp";
@@ -65,14 +55,6 @@ public class Constants {
 	public static final String WSO2_WORKSET_META_FNAME = "metadata.properties";
 	public static final String WSO2_WORKSET_METAFILE_SETNAME = "workset.name";
 	public static final String WSO2_WORKSET_METAFILE_SETDESP = "workset.description";
-	public static final String SIGIRI_JOB_ID = "sigiri.job.id";
-	public static final String SIGIRI_JOB_STATUS = "sigiri.job.status";
-	public static final String SIGIRI_JOB_STATUS_UPDATE_TIME = "sigiri.job.status.update.time";
-
-	public static final String PN_WSO2_REPO_JOB_EXE = "wso2.repo.job.exe";
-	public static final String PN_WSO2_REPO_JOB_DEP = "wso2.repo.job.dep";
-	public static final String PN_WSO2_RES_EXE_PREFIX = "wso2.res.exe.prefix";
-	public static final String PN_WSO2_RES_LIB_PREFIX = "wso2.res.lib.prefix";
 
 	// Sigiri related properties
 	public static final String PN_SIGIRI_SERVER_EPR = "sigiri.server.epr";

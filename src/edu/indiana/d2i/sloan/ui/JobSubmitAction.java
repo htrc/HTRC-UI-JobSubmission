@@ -3,10 +3,10 @@ package edu.indiana.d2i.sloan.ui;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -19,22 +19,24 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.SessionAware;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
+import edu.indiana.d2i.registryext.RegistryExtAgent;
+import edu.indiana.d2i.registryext.RegistryExtAgent.GetResourceResponse;
+import edu.indiana.d2i.registryext.RegistryExtAgent.ListResourceResponse;
+import edu.indiana.d2i.registryext.RegistryExtAgent.ResourceISType;
+import edu.indiana.d2i.registryext.schema.Entry;
 import edu.indiana.d2i.sigiri.SigiriAgent;
 import edu.indiana.d2i.sloan.AgentsRepoSingleton;
 import edu.indiana.d2i.sloan.Constants;
 import edu.indiana.d2i.sloan.exception.NullSigiriJobIdException;
-import edu.indiana.d2i.sloan.exception.PathNotExistException;
+import edu.indiana.d2i.sloan.exception.RegistryExtException;
 import edu.indiana.d2i.sloan.schema.internal.InternalSchemaUtil;
 import edu.indiana.d2i.sloan.schema.internal.JobDescriptionType;
 import edu.indiana.d2i.sloan.schema.user.UserSchemaUtil;
-import edu.indiana.d2i.wso2.ArchiveFileExt;
 import edu.indiana.d2i.wso2.JobProperty;
-import edu.indiana.d2i.wso2.WSO2Agent;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobStatus;
 import edu.indiana.sloan.schema.SchemaUtil;
 
@@ -46,6 +48,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 	private static final Logger logger = Logger
 			.getLogger(JobSubmitAction.class);
 
+	@SuppressWarnings("unused")
 	private Map<String, Object> session;
 
 	private String errMsg = null;
@@ -123,18 +126,17 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 	}
 
 	public boolean isValidForm() {
+		/**
+		 * Currently all basic validations are moved to front end (e.g.,
+		 * javascript), Other complex validations can be put in this method as
+		 * backend validation
+		 */
 
-		if (!getJobDespFileName().endsWith(".xml")) {
-			errMsg = "Job description must be an .xml file";
-			logger.error(errMsg);
-			return false;
-		}
-
-		if (!ArchiveFileExt.isValidExt(getJobArchiveFileName())) {
-			errMsg = "Job archive file: " + ArchiveFileExt.MSG;
-			logger.error(errMsg);
-			return false;
-		}
+		// if (!ArchiveFileExt.isValidExt(getJobArchiveFileName())) {
+		// errMsg = "Job archive file: " + ArchiveFileExt.MSG;
+		// logger.error(errMsg);
+		// return false;
+		// }
 
 		return true;
 	}
@@ -150,19 +152,41 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 		try {
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
-			WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
+			RegistryExtAgent registryExtAgent = agentsRepo
+					.getRegistryExtAgent();
 
-			String worksetRepoPrefix = PortalConfiguration
-					.getRegistryWorksetPrefix();
+			StringBuilder requestURL = new StringBuilder();
+			ListResourceResponse response = registryExtAgent
+					.getAllChildren(requestURL
+							.append(PortalConfiguration
+									.getRegistryWorksetPrefix())
+							.append("?user=").append(username).toString());
 
-			List<String> userWorksetRepo = wso2Agent
-					.getAllChildren(worksetRepoPrefix + username);
+			List<String> userWorksetRepo = new ArrayList<String>();
+
+			if (response.getStatusCode() == 404) {
+				logger.warn(String.format("Path %s doesn't exist",
+						requestURL.toString()));
+			} else if (response.getStatusCode() == 200) {
+				for (Entry entry : response.getEntries().getEntry()) {
+					userWorksetRepo.add(entry.getName());
+				}
+			}
 
 			worksetInfoList = new ArrayList<WorksetMetaInfo>();
 
 			for (String worksetId : userWorksetRepo) {
-				List<String> items = wso2Agent.getAllChildren(worksetRepoPrefix
-						+ username + WSO2Agent.separator + worksetId);
+
+				StringBuilder url = new StringBuilder();
+				ListResourceResponse resp = registryExtAgent.getAllChildren(url
+						.append(PortalConfiguration.getRegistryWorksetPrefix())
+						.append(worksetId).append("?user=").append(username)
+						.toString());
+
+				List<String> items = new ArrayList<String>();
+				for (Entry entry : resp.getEntries().getEntry()) {
+					items.add(entry.getName());
+				}
 
 				String fileName = null;
 				for (String item : items) {
@@ -172,12 +196,18 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 					}
 				}
 
-				InputStream is = wso2Agent.getResource(worksetRepoPrefix
-						+ username + WSO2Agent.separator + worksetId
-						+ WSO2Agent.separator
-						+ Constants.WSO2_WORKSET_META_FNAME);
+				url.setLength(0);
+				GetResourceResponse getResp = registryExtAgent.getResource(url
+						.append(PortalConfiguration.getRegistryWorksetPrefix())
+						.append(worksetId).append(RegistryExtAgent.separator)
+						.append(Constants.WSO2_WORKSET_META_FNAME)
+						.append("?user=").append(username).toString());
+
 				Properties worksetMeta = new Properties();
-				worksetMeta.load(is);
+				worksetMeta.load(getResp.getIs());
+
+				// close connection
+				registryExtAgent.closeConnection(getResp.getMethod());
 
 				WorksetMetaInfo worksetMetaInfo = new WorksetMetaInfo(
 						worksetId, fileName, worksetMeta.getProperty(
@@ -188,15 +218,19 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				worksetInfoList.add(worksetMetaInfo);
 			}
 
-		} catch (RegistryException e) {
-			logger.error(e.getMessage(), e);
-			addActionError(e.getMessage());
-			return ERROR;
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
-		} catch (PathNotExistException e) {
+		} catch (RegistryExtException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (IllegalStateException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (JAXBException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
@@ -229,7 +263,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				for (String idx : worksetCheckbox)
 					worksetList.append(idx + " ");
 
-				logger.debug("Selected worksets = " + worksetList.toString());
+				logger.debug("Selected worksets=" + worksetList.toString());
 			} else {
 				logger.debug("No worksets being selected");
 			}
@@ -238,10 +272,6 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 		try {
 			uploadJob();
-		} catch (RegistryException e) {
-			logger.error(e.getMessage(), e);
-			addActionError(e.getMessage());
-			return ERROR;
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
@@ -250,6 +280,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			logger.error(e.getMessage(), e);
 			errMsg = "Invalid job description file";
 			logger.error(errMsg);
+			addActionError(e.getMessage());
 			return INPUT;
 		} catch (NullSigiriJobIdException e) {
 			logger.error(e.getMessage(), e);
@@ -259,27 +290,59 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
+		} catch (RegistryExtException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
 		}
 
 		return SUCCESS;
 	}
 
-	private void uploadJob() throws RegistryException, IOException,
-			JAXBException, NullSigiriJobIdException, XMLStreamException {
+	private void uploadJob() throws IOException, JAXBException,
+			NullSigiriJobIdException, XMLStreamException, RegistryExtException {
 
 		Map<String, Object> session = ActionContext.getContext().getSession();
 		String username = (String) session.get(Constants.SESSION_USERNAME);
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
-		WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
+		RegistryExtAgent registryExtAgent = agentsRepo.getRegistryExtAgent();
+
+		/**
+		 * Update token: write token as a property file, all jobs share this
+		 * token file, which is stored directly under user's home directory. (In
+		 * registry extension, it is under /htrc/username/files/sloan/jobs/).
+		 * Each job submission will update this file
+		 */
+
+		Properties tokenFile = new Properties();
+
+		tokenFile.setProperty(Constants.OAUTH2_ACCESS_TOKEN, accessToken);
+
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		tokenFile.store(os, "");
+
+		String outPath = registryExtAgent.postResource(
+				new StringBuilder()
+						.append(PortalConfiguration.getRegistryJobPrefix())
+						.append(Constants.OAUTH2_TOKEN_FNAME).append("?user=")
+						.append(username).toString(), new ResourceISType(
+						new ByteArrayInputStream(os.toByteArray()),
+						Constants.OAUTH2_TOKEN_FNAME, "text/plain"));
+
+		logger.info(String.format("Updated token file %s saved to %s",
+				Constants.OAUTH2_TOKEN_FNAME, outPath));
 
 		// remove leading and trailing white-spaces
 		selectedJob = selectedJob.trim();
 
+		/* generate registry internal job id */
 		String internalJobId = UUID.randomUUID().toString();
-		String jobPath = PortalConfiguration.getRegistryPrefix() + username
-				+ WSO2Agent.separator + internalJobId + WSO2Agent.separator;
-		logger.info("Job pathname = " + jobPath);
+
+		String jobPath = PortalConfiguration.getRegistryJobPrefix()
+				+ internalJobId + RegistryExtAgent.separator;
+		logger.info("Create new job home=" + jobPath);
 
 		/**
 		 * check user uploaded job description xml file, make sure it conforms
@@ -296,6 +359,9 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			logger.debug(UserSchemaUtil.toXMLString(userJobDesp));
 		}
 
+		/**
+		 * Pick user selected worksets
+		 */
 		List<WorksetMetaInfo> selectedWorksets = new ArrayList<WorksetMetaInfo>();
 
 		if (worksetCheckbox != null) {
@@ -304,6 +370,9 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			}
 		}
 
+		/**
+		 * Convert user schema to internal schema used by sigiri daemon
+		 */
 		JobDescriptionType internalJobDesp = SchemaUtil.user2internal(
 				userJobDesp, username, internalJobId, jobArchiveFileName,
 				selectedWorksets);
@@ -316,49 +385,50 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			logger.debug(internalJobDespStr);
 		}
 
-		String outPath = null;
-
 		// create job.properties file
 		Properties jobProp = new Properties();
 		jobProp.setProperty(JobProperty.JOB_TITLE, selectedJob);
 		jobProp.setProperty(JobProperty.JOB_OWNER, username);
+		jobProp.setProperty(JobProperty.JOB_CREATION_TIME,
+				new Date(System.currentTimeMillis()).toString());
 
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		os = new ByteArrayOutputStream();
 		jobProp.store(os, "");
 
-		outPath = wso2Agent.postResource(jobPath
-				+ Constants.WSO2_JOB_PROP_FNAME, os.toByteArray(), "text");
+		outPath = registryExtAgent.postResource(
+				new StringBuilder().append(jobPath)
+						.append(Constants.WSO2_JOB_PROP_FNAME).append("?user=")
+						.append(username).toString(), new ResourceISType(
+						new ByteArrayInputStream(os.toByteArray()),
+						Constants.WSO2_JOB_PROP_FNAME, "text/plain"));
+
 		logger.info(String.format("Job property file %s saved to %s",
 				Constants.WSO2_JOB_PROP_FNAME, outPath));
 
 		// post job description
-
-		outPath = wso2Agent.postResource(jobPath
-				+ Constants.WSO2_JOB_DESP_FNAME, internalJobDespStr,
-				jobDespContentType);
+		outPath = registryExtAgent.postResource(
+				new StringBuilder().append(jobPath)
+						.append(Constants.WSO2_JOB_DESP_FNAME).append("?user=")
+						.append(username).toString(),
+				new ResourceISType(new ByteArrayInputStream(internalJobDespStr
+						.getBytes()), Constants.WSO2_JOB_DESP_FNAME,
+						jobDespContentType));
 
 		logger.info(String.format("Job description file %s saved to %s",
 				Constants.WSO2_JOB_DESP_FNAME, outPath));
 
 		// post archive
-		outPath = wso2Agent.postResource(
-				jobPath + PortalConfiguration.getRegistryArchiveFolder()
-						+ WSO2Agent.separator + jobArchiveFileName,
-				FileUtils.readFileToByteArray(jobArchive),
-				jobArchiveContentType);
+		outPath = registryExtAgent.postResource(
+				new StringBuilder().append(jobPath)
+						.append(PortalConfiguration.getRegistryArchiveFolder())
+						.append(RegistryExtAgent.separator)
+						.append(jobArchiveFileName).append("?user=")
+						.append(username).toString(), new ResourceISType(
+						new FileInputStream(jobArchive), jobArchiveFileName,
+						jobArchiveContentType));
 
 		logger.info(String.format("Job archive file %s saved to %s",
 				jobArchiveFileName, outPath));
-
-		// create tmpOutput folder
-		String jobTmpOutputHome = PortalConfiguration
-				.getRegistryTmpOutputPrefix()
-				+ username
-				+ WSO2Agent.separator
-				+ internalJobId;
-		wso2Agent.createDir(jobTmpOutputHome);
-		logger.info(String.format("Job tmpOutput home dir %s created",
-				jobTmpOutputHome));
 
 		// submit to sigiri service
 		SigiriAgent sigiriAgent = agentsRepo.getSigiriAgent();
@@ -372,18 +442,24 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		/**
 		 * write the job id to registry for future reference
 		 */
-		is = wso2Agent.getResource(jobPath + Constants.WSO2_JOB_PROP_FNAME);
-		jobProp = new Properties();
-		jobProp.load(is);
-		jobProp.setProperty(Constants.SIGIRI_JOB_ID, sigiriJobId);
-		jobProp.setProperty(Constants.SIGIRI_JOB_STATUS, jobStatus.getStatus());
-		jobProp.setProperty(Constants.SIGIRI_JOB_STATUS_UPDATE_TIME, new Date(
-				System.currentTimeMillis()).toString());
+		jobProp.setProperty(JobProperty.SIGIRI_JOB_ID, sigiriJobId);
+		jobProp.setProperty(JobProperty.SIGIRI_JOB_STATUS,
+				jobStatus.getStatus());
+
+		jobProp.setProperty(JobProperty.SIGIRI_JOB_STATUS_UPDATE_TIME,
+				new Date(System.currentTimeMillis()).toString());
 		os = new ByteArrayOutputStream();
 		jobProp.store(os, "");
 
-		wso2Agent.postResource(jobPath + Constants.WSO2_JOB_PROP_FNAME,
-				os.toByteArray(), "text");
+		outPath = registryExtAgent.postResource(
+				new StringBuilder().append(jobPath)
+						.append(Constants.WSO2_JOB_PROP_FNAME).append("?user=")
+						.append(username).toString(), new ResourceISType(
+						new ByteArrayInputStream(os.toByteArray()),
+						Constants.WSO2_JOB_PROP_FNAME, "text/plain"));
+
+		logger.info(String.format("Updated job property file %s saved to %s",
+				Constants.WSO2_JOB_PROP_FNAME, outPath));
 	}
 
 	public String getSelectedJob() {
@@ -461,6 +537,14 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 	public void setErrMsg(String errMsg) {
 		this.errMsg = errMsg;
+	}
+
+	public List<String> getWorksetCheckbox() {
+		return worksetCheckbox;
+	}
+
+	public void setWorksetCheckbox(List<String> worksetCheckbox) {
+		this.worksetCheckbox = worksetCheckbox;
 	}
 
 }

@@ -19,26 +19,16 @@ public class PortalConfiguration {
 
 	// registry properties
 	private static String registryEPR = null;
-	private static String registryRootName = null;
-	private static String registryRootPass = null;
-	private static String registryStorePath = null;
-	private static String registryStorePwd = null;
-	private static String registryStoreType = null;
-
-	/* repo home */
-	private static String registryPrefix = null;
+	private static Boolean registrySelfSign = false;
 
 	/* workset home */
 	private static String registryWorksetPrefix = null;
 
-	/* tmpoutput home */
-	private static String registryTmpOutputPrefix = null;
+	/* job home */
+	private static String registryJobPrefix = null;
 
 	/* job archive folder name */
 	private static String registryArchiveFolder = null;
-
-	private static String axis2Repo = null;
-	private static String axis2Conf = null;
 
 	// sigiri properties
 	private static String sigiriEPR = null;
@@ -66,29 +56,16 @@ public class PortalConfiguration {
 
 		// registry properties
 		registryEPR = props.getProperty(Constants.PN_WSO2_SERVER_EPR,
-				"https://coffeetree.cs.indiana.edu:9445/");
-		registryRootName = props.getProperty(Constants.PN_WSO2_ROOT_UNAME,
-				"admin");
-		registryRootPass = props.getProperty(Constants.PN_WSO2_ROOT_PASS,
-				"BillionsOfPages11");
-		registryStorePath = props.getProperty(Constants.PN_WSO2_TRUESTORE_PATH,
-				"client-truststore.jks");
-		registryStorePwd = props.getProperty(Constants.PN_WSO2_STORE_PASS,
-				"wso2carbon");
-		registryStoreType = props.getProperty(Constants.PN_WSO2_STORE_TYPE,
-				"JKS");
-		registryPrefix = props.getProperty(Constants.PN_WSO2_REPO_PREFIX,
-				"/htrc/repo/");
+				"https://localhost:9443/ExtensionAPI-0.1.0/services/");
+		registrySelfSign = Boolean.parseBoolean(props.getProperty(
+				Constants.PN_WSO2_SELF_SIGN, "false"));
+
 		registryWorksetPrefix = props.getProperty(
-				Constants.PN_WSO2_WORKSET_PREFIX, "/htrc/workset/");
-		registryTmpOutputPrefix = props.getProperty(
-				Constants.PN_WSO2_TMPOUTPUT_PREFIX, "/htrc/tmpoutput/");
+				Constants.PN_WSO2_WORKSET_PREFIX, "/sloan/worksets/");
+		registryJobPrefix = props.getProperty(Constants.PN_WSO2_JOB_PREFIX,
+				"/sloan/jobs/");
 		registryArchiveFolder = props.getProperty(
 				Constants.PN_WSO2_REPO_JOB_ARCHIVE, "archive");
-		axis2Repo = props.getProperty(Constants.PN_WSO2_AXIS2_REPO,
-				"wso2_axis2repo");
-		axis2Conf = props.getProperty(Constants.PN_WSO2_AXIS2_CONF,
-				"wso2_axis2conf/axis2_client.xml");
 
 		// sigiri properties
 		sigiriEPR = props.getProperty(Constants.PN_SIGIRI_SERVER_EPR,
@@ -145,64 +122,10 @@ public class PortalConfiguration {
 		return registryEPR;
 	}
 
-	public static String getRegistryStorePath() throws IOException {
-		if (registryStorePath == null)
-			loadProperties();
-		return registryStorePath;
-	}
-
-	public static String getRegistryStorePwd() throws IOException {
-		if (registryStorePwd == null)
-			loadProperties();
-		return registryStorePwd;
-	}
-
-	public static String getRegistryStoreType() throws IOException {
-		if (registryStoreType == null)
-			loadProperties();
-		return registryStoreType;
-	}
-
-	public static String getRegistryPrefix() throws IOException {
-		if (registryPrefix == null)
-			loadProperties();
-		return registryPrefix;
-	}
-
 	public static String getRegistryWorksetPrefix() throws IOException {
 		if (registryWorksetPrefix == null)
 			loadProperties();
 		return registryWorksetPrefix;
-	}
-
-	public static String getRegistryTmpOutputPrefix() throws IOException {
-		if (registryTmpOutputPrefix == null)
-			loadProperties();
-		return registryTmpOutputPrefix;
-	}
-
-	public static String getRegistryRootName() throws IOException {
-		if (registryRootName == null)
-			loadProperties();
-		return registryRootName;
-	}
-
-	public static String getRegistryRootPass() throws IOException {
-		if (registryRootPass == null)
-			loadProperties();
-		return registryRootPass;
-	}
-
-	public static String getAxis2Repo() throws IOException {
-		if (axis2Repo == null)
-			loadProperties();
-		return axis2Repo;
-	}
-
-	public static String getAxis2Conf() throws IOException {
-		if (axis2Conf == null)
-			loadProperties();
-		return axis2Conf;
 	}
 
 	public static String getSigiriEPR() throws IOException {
@@ -216,4 +139,17 @@ public class PortalConfiguration {
 			loadProperties();
 		return registryArchiveFolder;
 	}
+
+	public static Boolean getRegistrySelfSign() throws IOException {
+		if (registrySelfSign == null)
+			loadProperties();
+		return registrySelfSign;
+	}
+
+	public static String getRegistryJobPrefix() throws IOException {
+		if (registryJobPrefix == null)
+			loadProperties();
+		return registryJobPrefix;
+	}
+
 }

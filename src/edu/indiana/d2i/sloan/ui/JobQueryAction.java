@@ -1,23 +1,26 @@
 package edu.indiana.d2i.sloan.ui;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.SessionAware;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
+import edu.indiana.d2i.registryext.RegistryExtAgent;
+import edu.indiana.d2i.registryext.RegistryExtAgent.GetResourceResponse;
+import edu.indiana.d2i.registryext.RegistryExtAgent.ResourceISType;
 import edu.indiana.d2i.sigiri.SigiriAgent;
 import edu.indiana.d2i.sloan.AgentsRepoSingleton;
 import edu.indiana.d2i.sloan.Constants;
-import edu.indiana.d2i.wso2.WSO2Agent;
+import edu.indiana.d2i.sloan.exception.RegistryExtException;
+import edu.indiana.d2i.wso2.JobProperty;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobId;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobStatus;
 
@@ -26,20 +29,21 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = Logger.getLogger(JobQueryAction.class);
+	@SuppressWarnings("unused")
 	private Map<String, Object> session;
 
 	private String sigiriJobId;
 	private String sigiriJobStatus;
-	private String selectedJobTitle;
+	private String jobTitle;
 
+	/* registry job id */
 	private String selectedInsId;
 
 	public String execute() {
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("Job instance id %s selected",
-					selectedInsId));
-			logger.debug(String.format("sigiriJobId = %s", sigiriJobId));
-			logger.debug(String.format("Job Title is %s", selectedJobTitle));
+			logger.debug(String.format("Registry job id=%s", selectedInsId));
+			logger.debug(String.format("Sigiri job id=%s", sigiriJobId));
+			logger.debug(String.format("Job title =%s", jobTitle));
 		}
 
 		Map<String, Object> session = ActionContext.getContext().getSession();
@@ -49,39 +53,51 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
 			SigiriAgent sigiriAgent = agentsRepo.getSigiriAgent();
-			WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
-
-			String jobPath = PortalConfiguration.getRegistryPrefix() + username
-					+ WSO2Agent.separator + selectedInsId + WSO2Agent.separator;
+			RegistryExtAgent registryExtAgent = agentsRepo
+					.getRegistryExtAgent();
 
 			JobId jobId = new JobId();
 			jobId.setJobId(sigiriJobId);
 			JobStatus jobStatus = sigiriAgent.queryJobStatus(jobId);
 			sigiriJobStatus = jobStatus.getStatus();
-			logger.info(String.format("Sigiri Job id %s , status is %s",
-					sigiriJobId, sigiriJobStatus));
 
 			/**
 			 * Also update the job status in job property file
 			 */
-			InputStream is = wso2Agent.getResource(jobPath
-					+ Constants.WSO2_JOB_PROP_FNAME);
+			StringBuilder requestURL = new StringBuilder();
+
+			GetResourceResponse response = registryExtAgent
+					.getResource(requestURL
+							.append(PortalConfiguration.getRegistryJobPrefix())
+							.append(selectedInsId)
+							.append(RegistryExtAgent.separator)
+							.append(Constants.WSO2_JOB_PROP_FNAME)
+							.append("?user=").append(username).toString());
+
 			Properties jobProp = new Properties();
-			jobProp.load(is);
-			jobProp.setProperty(Constants.SIGIRI_JOB_STATUS,
-					jobStatus.getStatus());
-			jobProp.setProperty(Constants.SIGIRI_JOB_STATUS_UPDATE_TIME,
+			jobProp.load(response.getIs());
+
+			// close connection
+			registryExtAgent.closeConnection(response.getMethod());
+
+			jobProp.setProperty(JobProperty.SIGIRI_JOB_STATUS, sigiriJobStatus);
+
+			jobProp.setProperty(JobProperty.SIGIRI_JOB_STATUS_UPDATE_TIME,
 					new Date(System.currentTimeMillis()).toString());
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			jobProp.store(os, "");
 
-			wso2Agent.postResource(jobPath + Constants.WSO2_JOB_PROP_FNAME,
-					os.toByteArray(), "text");
-		} catch (RegistryException e) {
+			registryExtAgent.postResource(
+					requestURL.toString(),
+					new ResourceISType(new ByteArrayInputStream(os
+							.toByteArray()), Constants.WSO2_JOB_PROP_FNAME,
+							"text/plain"));
+
+		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
-		} catch (IOException e) {
+		} catch (RegistryExtException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
@@ -106,14 +122,6 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 		this.sigiriJobId = sigiriJobId;
 	}
 
-	public String getSelectedJobTitle() {
-		return selectedJobTitle;
-	}
-
-	public void setSelectedJobTitle(String selectedJobTitle) {
-		this.selectedJobTitle = selectedJobTitle;
-	}
-
 	public String getSelectedInsId() {
 		return selectedInsId;
 	}
@@ -125,6 +133,14 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 	@Override
 	public void setSession(Map<String, Object> session) {
 		this.session = session;
+	}
+
+	public String getJobTitle() {
+		return jobTitle;
+	}
+
+	public void setJobTitle(String jobTitle) {
+		this.jobTitle = jobTitle;
 	}
 
 }

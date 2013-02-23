@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
@@ -44,7 +43,8 @@ public class RegistryExtAgent {
 			.getLogger(RegistryExtAgent.class);
 
 	private String registryEPR = null;
-
+	public static final String separator = "/";
+	
 	// prefix for file related operations
 	private static String FILEOPPREFIX = "files";
 
@@ -106,16 +106,16 @@ public class RegistryExtAgent {
 	}
 
 	public static class ListResourceResponse {
-		private List<String> children;
+		private Entries entries;
 		private int statusCode;
 
-		public ListResourceResponse(List<String> children, int statusCode) {
-			this.children = children;
+		public ListResourceResponse(Entries entries, int statusCode) {
+			this.entries = entries;
 			this.statusCode = statusCode;
 		}
 
-		public List<String> getChildren() {
-			return children;
+		public Entries getEntries() {
+			return entries;
 		}
 
 		public int getStatusCode() {
@@ -264,14 +264,8 @@ public class RegistryExtAgent {
 			}
 
 			Entries entries = xmlFile.getEntries();
-			List<String> children = new ArrayList<String>();
 
-			for (Entry entry : entries.getEntry()) {
-
-				children.add(entry.getName());
-			}
-
-			return new ListResourceResponse(children, statusCode);
+			return new ListResourceResponse(entries, statusCode);
 		} finally {
 			if (options != null)
 				options.releaseConnection();

@@ -15,10 +15,10 @@
 		<h2>Worksets have been updated successfully</h2>
 		<br />
 
-		<p>
+		<h4>
 			<a id="searchlink" href="PrepareJobInfoAction">Back to job search
 				page</a>
-		</p>
+		</h4>
 	</div>
 </body>
 </html>

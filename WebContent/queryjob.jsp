@@ -16,7 +16,7 @@
 		<table border="2" cellspacing="0" cellpadding="2">
 			<tr>
 				<th>Jot Title</th>
-				<td><s:property value="selectedJobTitle" /></td>
+				<td><s:property value="jobTitle" /></td>
 			</tr>
 			<tr>
 				<th>Job Internal ID (UUID)</th>
@@ -31,7 +31,7 @@
 		<br />
 		<s:form action="JobQueryAction" method="post" namespace="/">
 			<s:hidden name="selectedInsId" value="%{selectedInsId}" />
-			<s:hidden name="selectedJobTitle" value="%{selectedJobTitle}" />
+			<s:hidden name="jobTitle" value="%{jobTitle}" />
 			<s:hidden name="sigiriJobId" value="%{sigiriJobId}" />
 			<s:submit method="execute" key="label.update" align="center" />
 		</s:form>

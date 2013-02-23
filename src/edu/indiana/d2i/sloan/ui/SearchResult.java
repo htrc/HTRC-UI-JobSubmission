@@ -1,44 +1,56 @@
 package edu.indiana.d2i.sloan.ui;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.xml.bind.JAXBException;
+
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.SessionAware;
-import org.wso2.carbon.registry.core.Resource;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
+import edu.indiana.d2i.registryext.RegistryExtAgent;
+import edu.indiana.d2i.registryext.RegistryExtAgent.GetResourceResponse;
+import edu.indiana.d2i.registryext.RegistryExtAgent.ListResourceResponse;
+import edu.indiana.d2i.registryext.schema.Entry;
 import edu.indiana.d2i.sloan.AgentsRepoSingleton;
 import edu.indiana.d2i.sloan.Constants;
-import edu.indiana.d2i.sloan.exception.PathNotExistException;
+import edu.indiana.d2i.sloan.exception.RegistryExtException;
 import edu.indiana.d2i.wso2.JobProperty;
-import edu.indiana.d2i.wso2.WSO2Agent;
 
 public class SearchResult extends ActionSupport implements SessionAware,
 		LoginRequired, SessionTimeoutRequired {
 	private static final long serialVersionUID = 1L;
+	@SuppressWarnings("unused")
 	private Map<String, Object> session;
 	private static final Logger logger = Logger.getLogger(SearchResult.class);
+
+	/* job query string */
 	private String selectedJobTitle;
 
 	private List<RadioItem> jobInsList = new ArrayList<RadioItem>();
 	private List<JobMetaInfo> jobInfoList = new ArrayList<JobMetaInfo>();
 
-	private String selectedOp;
-
+	private String errMsg = null;
+	
+	/* sigiri job id */
 	private String sigiriJobId;
+
+	/* registry job id */
 	private String selectedJob;
 
+	/* registry job id, same as 'selectedJob', used by JobQueryAction */
 	private String selectedInsId;
+
+	private String defaultJob;
+
+	private String jobTitle;
 
 	public static class RadioItem {
 		private String key;
@@ -68,7 +80,6 @@ public class SearchResult extends ActionSupport implements SessionAware,
 	}
 
 	public static class JobMetaInfo implements Comparable<JobMetaInfo> {
-		private Date createdTime;
 		private String createdTimeStr;
 		private String owner;
 		private String internalJobId;
@@ -100,30 +111,12 @@ public class SearchResult extends ActionSupport implements SessionAware,
 			this.jobTitle = jobTitle;
 		}
 
-		public static String date2Str(Date date) {
-			// return DateFormat.getDateInstance(DateFormat.LONG).format(date);
-			return date.toString();
-		}
-
-		public void initDateStr() {
-			if (createdTime != null)
-				createdTimeStr = JobMetaInfo.date2Str(createdTime);
-		}
-
 		public String getInternalJobId() {
 			return internalJobId;
 		}
 
 		public void setInternalJobId(String internalJobId) {
 			this.internalJobId = internalJobId;
-		}
-
-		public Date getCreatedTime() {
-			return createdTime;
-		}
-
-		public void setCreatedTime(Date createdTime) {
-			this.createdTime = createdTime;
 		}
 
 		public String getJobStatus() {
@@ -134,21 +127,19 @@ public class SearchResult extends ActionSupport implements SessionAware,
 			this.jobStatus = jobStatus;
 		}
 
-		@Override
-		public int compareTo(JobMetaInfo jobMetaInfo) {
-			// TODO Auto-generated method stub
-			int res = jobTitle.compareTo(jobMetaInfo.getJobTitle());
-
-			return (res != 0) ? res : createdTime
-					.compareTo(jobMetaInfo.createdTime);
-		}
-
 		public String getLastStatusUpdateTimeStr() {
 			return lastStatusUpdateTimeStr;
 		}
 
 		public void setLastStatusUpdateTimeStr(String lastStatusUpdateTimeStr) {
 			this.lastStatusUpdateTimeStr = lastStatusUpdateTimeStr;
+		}
+
+		@Override
+		public int compareTo(JobMetaInfo jobMetaInfo) {
+			// TODO Auto-generated method stub
+			return jobTitle.compareTo(jobMetaInfo.getJobTitle());
+
 		}
 	}
 
@@ -157,11 +148,8 @@ public class SearchResult extends ActionSupport implements SessionAware,
 		String username = (String) session.get(Constants.SESSION_USERNAME);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("username=" + username);
-			logger.debug("selectedJobTitle=" + selectedJobTitle);
-			logger.debug(String.format("Operation %s selected", selectedOp));
-			logger.debug(String.format("Job %s selected", selectedJob));
-			logger.debug(String.format("Job Title is %s", selectedJobTitle));
+			logger.debug(String.format("Job %s is selected", selectedJob));
+			logger.debug(String.format("Job title =%s", selectedJobTitle));
 		}
 
 		if (selectedJob == null || "".equals(selectedJob)) {
@@ -173,40 +161,40 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 		try {
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
-			WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
-			String repoPrefix = PortalConfiguration.getRegistryPrefix();
+			RegistryExtAgent registryExtAgent = agentsRepo
+					.getRegistryExtAgent();
 
-			String jobPath = repoPrefix + username + WSO2Agent.separator
-					+ selectedJob + WSO2Agent.separator;
+			StringBuilder requestURL = new StringBuilder();
 
-			// retrieve job id
-			InputStream is = wso2Agent.getResource(jobPath + "/"
-					+ Constants.WSO2_JOB_PROP_FNAME);
+			GetResourceResponse response = registryExtAgent
+					.getResource(requestURL
+							.append(PortalConfiguration.getRegistryJobPrefix())
+							.append(selectedJob)
+							.append(RegistryExtAgent.separator)
+							.append(Constants.WSO2_JOB_PROP_FNAME)
+							.append("?user=").append(username).toString());
+
 			Properties jobProp = new Properties();
-			jobProp.load(is);
-			sigiriJobId = jobProp.getProperty(Constants.SIGIRI_JOB_ID);
+			jobProp.load(response.getIs());
 
-			/**
-			 * null indicated that the job has never been submitted to sigiri
-			 * for execution before
-			 */
-			if (sigiriJobId == null) {
-				sigiriJobId = "";
-				logger.info("No sigiri job id for job " + selectedJob);
-			}
+			// close connection
+			registryExtAgent.closeConnection(response.getMethod());
+
+			sigiriJobId = jobProp.getProperty(JobProperty.SIGIRI_JOB_ID);
+
+			jobTitle = jobProp.getProperty(JobProperty.JOB_TITLE);
 
 			/**
 			 * Let JobQueryAction take care of the job query, we just need to
 			 * pass in the sigiriJobId
 			 */
 			selectedInsId = selectedJob;
-			logger.info("Going to query job " + selectedInsId);
 
-		} catch (RegistryException e) {
+		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
-		} catch (IOException e) {
+		} catch (RegistryExtException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
@@ -220,19 +208,38 @@ public class SearchResult extends ActionSupport implements SessionAware,
 		String username = (String) session.get(Constants.SESSION_USERNAME);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("username=" + username);
-			logger.debug("selectedJobTitle=" + selectedJobTitle);
+			logger.debug("Job title query string =" + selectedJobTitle);
 		}
 
+		if (null == selectedJobTitle || "".equals(selectedJobTitle.trim())) {
+			errMsg = "Query string cannot be empty";
+			return INPUT;
+		}
+		
 		selectedJobTitle = selectedJobTitle.trim();
 
 		try {
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
-			WSO2Agent wso2Agent = agentsRepo.getWSO2Agent();
+			RegistryExtAgent registryExtAgent = agentsRepo
+					.getRegistryExtAgent();
 
-			String repoPrefix = PortalConfiguration.getRegistryPrefix();
-			String repoPath = repoPrefix + username;
-			List<String> internalJobIds = wso2Agent.getAllChildren(repoPath);
+			StringBuilder requestURL = new StringBuilder();
+			ListResourceResponse response = registryExtAgent
+					.getAllChildren(requestURL
+							.append(PortalConfiguration.getRegistryJobPrefix())
+							.append("?user=").append(username).toString());
+
+			List<String> internalJobIds = new ArrayList<String>();
+
+			if (response.getStatusCode() == 404) {
+				logger.warn(String.format("Path %s doesn't exist",
+						requestURL.toString()));
+			} else if (response.getStatusCode() == 200) {
+				for (Entry entry : response.getEntries().getEntry()) {
+					internalJobIds.add(entry.getName());
+				}
+			}
+
 			// remove the token file name from the list
 			internalJobIds.remove(Constants.OAUTH2_TOKEN_FNAME);
 
@@ -240,19 +247,19 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 			for (String jobId : internalJobIds) {
 
-				String jobPath = repoPrefix + username + WSO2Agent.separator
-						+ jobId;
+				StringBuilder url = new StringBuilder();
+				GetResourceResponse resp = registryExtAgent.getResource(url
+						.append(PortalConfiguration.getRegistryJobPrefix())
+						.append(jobId).append(RegistryExtAgent.separator)
+						.append(Constants.WSO2_JOB_PROP_FNAME).append("?user=")
+						.append(username).toString());
 
-				if (logger.isDebugEnabled()) {
-					logger.debug("job path = " + jobPath);
-				}
-
-				Resource jobRes = wso2Agent.getRawResource(jobPath);
-
-				InputStream is = wso2Agent.getResource(jobPath
-						+ WSO2Agent.separator + Constants.WSO2_JOB_PROP_FNAME);
 				Properties jobProp = new Properties();
-				jobProp.load(is);
+				jobProp.load(resp.getIs());
+
+				// close connection
+				registryExtAgent.closeConnection(resp.getMethod());
+
 				String jobTitle = jobProp.getProperty(JobProperty.JOB_TITLE);
 
 				if ("*".equals(selectedJobTitle) || jobTitle != null
@@ -269,27 +276,19 @@ public class SearchResult extends ActionSupport implements SessionAware,
 						jobMetaInfo.setJobTitle(jobTitle);
 						jobMetaInfo.setOwner(jobProp
 								.getProperty(JobProperty.JOB_OWNER));
-						jobMetaInfo.setCreatedTime(jobRes.getCreatedTime());
-
-						jobMetaInfo.initDateStr();
+						jobMetaInfo.setCreatedTimeStr(jobProp
+								.getProperty(JobProperty.JOB_CREATION_TIME));
 
 						/**
 						 * Retrieve job Status info
 						 */
-						String jobStatus = jobProp
-								.getProperty(Constants.SIGIRI_JOB_STATUS);
-						if (jobStatus == null || "".equals(jobStatus))
-							jobMetaInfo.setJobStatus("Not started");
-						else
-							jobMetaInfo.setJobStatus(jobStatus);
 
-						String updatedTime = jobProp
-								.getProperty(Constants.SIGIRI_JOB_STATUS_UPDATE_TIME);
-						if (updatedTime == null || "".equals(updatedTime))
-							jobMetaInfo
-									.setLastStatusUpdateTimeStr("Not Available");
-						else
-							jobMetaInfo.setLastStatusUpdateTimeStr(updatedTime);
+						jobMetaInfo.setJobStatus(jobProp
+								.getProperty(JobProperty.SIGIRI_JOB_STATUS));
+
+						jobMetaInfo
+								.setLastStatusUpdateTimeStr(jobProp
+										.getProperty(JobProperty.SIGIRI_JOB_STATUS_UPDATE_TIME));
 
 						jobInfoList.add(jobMetaInfo);
 					}
@@ -310,15 +309,22 @@ public class SearchResult extends ActionSupport implements SessionAware,
 						String.valueOf(i + 1)));
 			}
 
-		} catch (RegistryException e) {
-			logger.error(e.getMessage(), e);
-			addActionError(e.getMessage());
-			return ERROR;
+			if (jobInfoList.size() > 0)
+				defaultJob = jobInfoList.get(0).getInternalJobId();
+
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
-		} catch (PathNotExistException e) {
+		} catch (RegistryExtException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (IllegalStateException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (JAXBException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
@@ -351,14 +357,6 @@ public class SearchResult extends ActionSupport implements SessionAware,
 		this.jobInfoList = jobInfoList;
 	}
 
-	public String getSelectedOp() {
-		return selectedOp;
-	}
-
-	public void setSelectedOp(String selectedOp) {
-		this.selectedOp = selectedOp;
-	}
-
 	public String getSelectedJob() {
 		return selectedJob;
 	}
@@ -386,5 +384,21 @@ public class SearchResult extends ActionSupport implements SessionAware,
 	@Override
 	public void setSession(Map<String, Object> session) {
 		this.session = session;
+	}
+
+	public String getDefaultJob() {
+		return defaultJob;
+	}
+
+	public String getJobTitle() {
+		return jobTitle;
+	}
+
+	public String getErrMsg() {
+		return errMsg;
+	}
+
+	public void setErrMsg(String errMsg) {
+		this.errMsg = errMsg;
 	}
 }

@@ -18,6 +18,7 @@ import edu.indiana.d2i.registryext.RegistryExtAgent.GetResourceResponse;
 import edu.indiana.d2i.registryext.RegistryExtAgent.ListResourceResponse;
 import edu.indiana.d2i.registryext.RegistryExtAgent.ResourceFileType;
 import edu.indiana.d2i.registryext.RegistryExtAgent.ResourceISType;
+import edu.indiana.d2i.registryext.schema.Entry;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 
 public class TestSuite {
@@ -31,15 +32,15 @@ public class TestSuite {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String repoPath = "?recursive=false&user=boris";
+		String repoPath = "?recursive=false&user=gruan";
 
 		ListResourceResponse response = registryAgent.getAllChildren(repoPath);
 
 		if (response.getStatusCode() == 404) {
 			System.out.println(repoPath + " doesn't exist");
 		} else if (response.getStatusCode() == 200) {
-			for (String entry : response.getChildren()) {
-				System.out.println("child =" + entry);
+			for (Entry entry : response.getEntries().getEntry()) {
+				System.out.println("entry =" + entry.getName());
 			}
 		}
 
@@ -51,7 +52,7 @@ public class TestSuite {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String repoPath = "/a/b/bar.xml?user=boris";
+		String repoPath = "/a/b/workset.zip?user=gruan";
 		registryAgent.deleteResource(repoPath);
 
 	}
@@ -61,7 +62,7 @@ public class TestSuite {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String repoPath = "/a/b/bar.xml?user=boris";
+		String repoPath = "/a/b/bar.xml?user=gruan";
 		if (registryAgent.isResourceExist(repoPath)) {
 			System.out.println(String.format("Resource %s exists", repoPath));
 		} else {
@@ -69,7 +70,7 @@ public class TestSuite {
 					repoPath));
 		}
 
-		repoPath = "/verby.py?user=boris";
+		repoPath = "/c?user=gruan";
 		if (registryAgent.isResourceExist(repoPath)) {
 			System.out.println(String.format("Resource %s exists", repoPath));
 		} else {
@@ -83,12 +84,12 @@ public class TestSuite {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String testFilePath = "D:\\tmp\\file.xsd";
-		String repoPath = "/file.xsd?user=boris";
+		String testFilePath = "D:\\tmp\\jobs.zip";
+		String repoPath = "/a/b/workset.zip?user=gruan";
 
 		String destPath = registryAgent.postResource(repoPath,
 				new ResourceISType(new FileInputStream(testFilePath),
-						"file.xsd", "text/xml"));
+						"workset.zip", "application/zip"));
 
 		System.out.println("Resource has been posted to " + destPath);
 	}
@@ -100,7 +101,7 @@ public class TestSuite {
 
 		final String localTestFilePath1 = "D:\\tmp\\token.tmp";
 		final String localTestFilePath2 = "D:\\tmp\\niodev.jar";
-		String repoPath = "/a?user=boris";
+		String repoPath = "/c?user=gruan";
 
 		List<ResourceFileType> resourceList = new ArrayList<ResourceFileType>() {
 			private static final long serialVersionUID = 1L;
@@ -124,7 +125,7 @@ public class TestSuite {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String repoPath = "/a/token.tmp?user=boris";
+		String repoPath = "/c/token.tmp?user=gruan";
 
 		GetResourceResponse response = registryAgent.getResource(repoPath);
 

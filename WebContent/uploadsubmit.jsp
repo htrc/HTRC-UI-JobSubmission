@@ -8,6 +8,10 @@
 <link rel="stylesheet" type="text/css" href="./css/staticpage-style.css" />
 <title>Job Submission</title>
 <script language="javascript">
+	String.prototype.endsWith = function(suffix) {
+		return this.indexOf(suffix, this.length - suffix.length) !== -1;
+	};
+
 	function validate() {
 		try {
 			var table = document.getElementById('job_title_table');
@@ -43,6 +47,11 @@
 					return false;
 				}
 
+				if (!desp.value.endsWith('.xml')) {
+					var errMsg = 'Job description must be an xml file';
+					alert(errMsg);
+					return false;
+				}
 			}
 
 		} catch (e) {
@@ -59,6 +68,23 @@
 				var archive = table.rows[0].cells[1].childNodes[0];
 				if (null == archive || '' == archive.value) {
 					var errMsg = 'Job archive cannot be empty';
+					alert(errMsg);
+					return false;
+				}
+
+				var validArchiveSuffix = new Array(".zip", ".tar");
+
+				var isvalid = false;
+
+				for (var i = 0; i < validArchiveSuffix.length; i++) {
+					if (archive.value.endsWith(validArchiveSuffix[i])) {
+						isvalid = true;
+						break;
+					}
+				}
+				
+				if (!isvalid) {
+					var errMsg = 'Job archive can only be .zip, .tar file';
 					alert(errMsg);
 					return false;
 				}
@@ -146,19 +172,19 @@
 								<td><s:label
 										key="worksetInfoList[%{#envStatus.index}].UUID" /></td>
 								<s:hidden
-									name="currentWorksetInfoList[%{#envStatus.index}].UUID" />
+									name="worksetInfoList[%{#envStatus.index}].UUID" />
 								<td><s:label
 										key="worksetInfoList[%{#envStatus.index}].fileName" /></td>
 								<s:hidden
-									name="currentWorksetInfoList[%{#envStatus.index}].fileName" />
+									name="worksetInfoList[%{#envStatus.index}].fileName" />
 								<td><s:label
 										key="worksetInfoList[%{#envStatus.index}].worksetTitle" /></td>
 								<s:hidden
-									name="currentWorksetInfoList[%{#envStatus.index}].worksetTitle" />
+									name="worksetInfoList[%{#envStatus.index}].worksetTitle" />
 								<td><s:label
 										key="worksetInfoList[%{#envStatus.index}].worksetDesp" /></td>
 								<s:hidden
-									name="currentWorksetInfoList[%{#envStatus.index}].worksetDesp" />
+									name="worksetInfoList[%{#envStatus.index}].worksetDesp" />
 								<td><s:checkbox name="worksetCheckbox"
 										fieldValue="%{#envStatus.index}" /></td>
 							</tr>
