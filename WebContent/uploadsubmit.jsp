@@ -200,7 +200,7 @@
 				</s:else>
 			</fieldset>
 			<br />
-			<s:submit method="execute" key="label.upload" align="center" />
+			<s:submit method="execute" key="label.submit" align="center" />
 		</s:form>
 	</div>
 </body>

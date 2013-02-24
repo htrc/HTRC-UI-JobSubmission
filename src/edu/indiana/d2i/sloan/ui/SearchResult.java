@@ -38,7 +38,7 @@ public class SearchResult extends ActionSupport implements SessionAware,
 	private List<JobMetaInfo> jobInfoList = new ArrayList<JobMetaInfo>();
 
 	private String errMsg = null;
-	
+
 	/* sigiri job id */
 	private String sigiriJobId;
 
@@ -180,7 +180,8 @@ public class SearchResult extends ActionSupport implements SessionAware,
 			// close connection
 			registryExtAgent.closeConnection(response.getMethod());
 
-			sigiriJobId = jobProp.getProperty(JobProperty.SIGIRI_JOB_ID);
+			sigiriJobId = jobProp.getProperty(JobProperty.SIGIRI_JOB_ID,
+					"Not available");
 
 			jobTitle = jobProp.getProperty(JobProperty.JOB_TITLE);
 
@@ -215,7 +216,7 @@ public class SearchResult extends ActionSupport implements SessionAware,
 			errMsg = "Query string cannot be empty";
 			return INPUT;
 		}
-		
+
 		selectedJobTitle = selectedJobTitle.trim();
 
 		try {
@@ -283,12 +284,16 @@ public class SearchResult extends ActionSupport implements SessionAware,
 						 * Retrieve job Status info
 						 */
 
-						jobMetaInfo.setJobStatus(jobProp
-								.getProperty(JobProperty.SIGIRI_JOB_STATUS));
+						jobMetaInfo
+								.setJobStatus(jobProp.getProperty(
+										JobProperty.SIGIRI_JOB_STATUS,
+										"Not available"));
 
 						jobMetaInfo
 								.setLastStatusUpdateTimeStr(jobProp
-										.getProperty(JobProperty.SIGIRI_JOB_STATUS_UPDATE_TIME));
+										.getProperty(
+												JobProperty.SIGIRI_JOB_STATUS_UPDATE_TIME,
+												"Not available"));
 
 						jobInfoList.add(jobMetaInfo);
 					}

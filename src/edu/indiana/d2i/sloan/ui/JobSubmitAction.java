@@ -16,6 +16,7 @@ import java.util.UUID;
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.SessionAware;
@@ -65,6 +66,8 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 	private List<WorksetMetaInfo> worksetInfoList;
 	private List<String> worksetCheckbox;
+
+	private String danglingJobId = null;
 
 	public static class WorksetMetaInfo {
 		private String UUID;
@@ -272,10 +275,6 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 		try {
 			uploadJob();
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-			addActionError(e.getMessage());
-			return ERROR;
 		} catch (JAXBException e) {
 			logger.error(e.getMessage(), e);
 			errMsg = "Invalid job description file";
@@ -288,19 +287,83 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			return ERROR;
 		} catch (XMLStreamException e) {
 			logger.error(e.getMessage(), e);
-			addActionError(e.getMessage());
+			addActionError("Sigiri service exception:" + e.getMessage());
 			return ERROR;
 		} catch (RegistryExtException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
+		} catch (HttpException e) {
+			logger.error(e.getMessage(), e);
+			addActionError("Sigiri service exception:" + e.getMessage());
+			return ERROR;
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} finally {
+			String errString = "Exception occurred when cleaning up dangling job:";
+			try {
+				removeDanglingJob();
+			} catch (HttpException e) {
+				logger.error(errString + e.getMessage(), e);
+			} catch (IOException e) {
+				logger.error(errString + e.getMessage(), e);
+			} catch (RegistryExtException e) {
+				logger.error(errString + e.getMessage(), e);
+			}
 		}
 
 		return SUCCESS;
 	}
 
-	private void uploadJob() throws IOException, JAXBException,
-			NullSigiriJobIdException, XMLStreamException, RegistryExtException {
+	/**
+	 * Remove dangling job when job submission failed
+	 * 
+	 * @throws RegistryExtException
+	 * @throws IOException
+	 * @throws HttpException
+	 */
+	private void removeDanglingJob() throws HttpException, IOException,
+			RegistryExtException {
+		if (danglingJobId != null) {
+
+			Map<String, Object> session = ActionContext.getContext()
+					.getSession();
+			String username = (String) session.get(Constants.SESSION_USERNAME);
+
+			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
+			RegistryExtAgent registryExtAgent = agentsRepo
+					.getRegistryExtAgent();
+
+			/**
+			 * check if the job exists in registry
+			 */
+
+			StringBuilder requestURL = new StringBuilder();
+			requestURL.append(PortalConfiguration.getRegistryJobPrefix())
+					.append(danglingJobId).append("?user=").append(username);
+
+			if (registryExtAgent.isResourceExist(requestURL.toString())) {
+				logger.info(String.format(
+						"Going to clean up dangling job %s in registry",
+						requestURL.toString()));
+
+				registryExtAgent.deleteResource(requestURL.toString());
+
+				logger.info(String.format(
+						"Removed dangling job %s in registry",
+						requestURL.toString()));
+			} else {
+				logger.info(String.format(
+						"Job %s doesn't exist in registry, nothing to cleanup",
+						requestURL.toString()));
+			}
+		}
+	}
+
+	private void uploadJob() throws JAXBException, NullSigiriJobIdException,
+			XMLStreamException, RegistryExtException, IOException {
 
 		Map<String, Object> session = ActionContext.getContext().getSession();
 		String username = (String) session.get(Constants.SESSION_USERNAME);
@@ -339,6 +402,8 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 		/* generate registry internal job id */
 		String internalJobId = UUID.randomUUID().toString();
+
+		danglingJobId = internalJobId;
 
 		String jobPath = PortalConfiguration.getRegistryJobPrefix()
 				+ internalJobId + RegistryExtAgent.separator;
@@ -439,6 +504,12 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		if (sigiriJobId == null || "".equals(sigiriJobId))
 			throw new NullSigiriJobIdException("None sigiri job id returned");
 
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format(
+					"Job %s submitted to Sigiri, sigiri job id returned is %s",
+					internalJobId, sigiriJobId));
+		}
+
 		/**
 		 * write the job id to registry for future reference
 		 */
@@ -460,6 +531,16 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 		logger.info(String.format("Updated job property file %s saved to %s",
 				Constants.WSO2_JOB_PROP_FNAME, outPath));
+
+		logger.info(String.format(
+				"User %s's job %s has been submitted successfully", username,
+				jobPath));
+
+		/**
+		 * set danglingJobId to null to indicate that job has been submitted
+		 * successfully (no exceptions occurred)
+		 */
+		danglingJobId = null;
 	}
 
 	public String getSelectedJob() {

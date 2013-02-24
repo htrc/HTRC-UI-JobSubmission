@@ -3,6 +3,7 @@ package edu.indiana.d2i.sloan.ui;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
@@ -93,11 +94,15 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 							.toByteArray()), Constants.WSO2_JOB_PROP_FNAME,
 							"text/plain"));
 
-		} catch (IOException e) {
+		} catch (RegistryExtException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
-		} catch (RegistryExtException e) {
+		} catch (RemoteException e) {
+			logger.error(e.getMessage(), e);
+			addActionError("Sigiri service exception:" + e.getMessage());
+			return ERROR;
+		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
