@@ -48,7 +48,7 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 		}
 
 		Map<String, Object> session = ActionContext.getContext().getSession();
-		String username = (String) session.get(Constants.SESSION_USERNAME);
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		try {
 
@@ -67,13 +67,13 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 			 */
 			StringBuilder requestURL = new StringBuilder();
 
-			GetResourceResponse response = registryExtAgent
-					.getResource(requestURL
+			GetResourceResponse response = registryExtAgent.getResource(
+					requestURL
 							.append(PortalConfiguration.getRegistryJobPrefix())
 							.append(selectedInsId)
 							.append(RegistryExtAgent.separator)
-							.append(Constants.WSO2_JOB_PROP_FNAME)
-							.append("?user=").append(username).toString());
+							.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
+					accessToken);
 
 			Properties jobProp = new Properties();
 			jobProp.load(response.getIs());
@@ -90,6 +90,7 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 
 			registryExtAgent.postResource(
 					requestURL.toString(),
+					accessToken,
 					new ResourceISType(new ByteArrayInputStream(os
 							.toByteArray()), Constants.WSO2_JOB_PROP_FNAME,
 							"text/plain"));

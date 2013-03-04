@@ -145,7 +145,7 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 	public String execute() {
 		Map<String, Object> session = ActionContext.getContext().getSession();
-		String username = (String) session.get(Constants.SESSION_USERNAME);
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("Job %s is selected", selectedJob));
@@ -166,13 +166,13 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 			StringBuilder requestURL = new StringBuilder();
 
-			GetResourceResponse response = registryExtAgent
-					.getResource(requestURL
+			GetResourceResponse response = registryExtAgent.getResource(
+					requestURL
 							.append(PortalConfiguration.getRegistryJobPrefix())
 							.append(selectedJob)
 							.append(RegistryExtAgent.separator)
-							.append(Constants.WSO2_JOB_PROP_FNAME)
-							.append("?user=").append(username).toString());
+							.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
+					accessToken);
 
 			Properties jobProp = new Properties();
 			jobProp.load(response.getIs());
@@ -206,7 +206,7 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 	public String showSearchRes() {
 		Map<String, Object> session = ActionContext.getContext().getSession();
-		String username = (String) session.get(Constants.SESSION_USERNAME);
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Job title query string =" + selectedJobTitle);
@@ -225,10 +225,10 @@ public class SearchResult extends ActionSupport implements SessionAware,
 					.getRegistryExtAgent();
 
 			StringBuilder requestURL = new StringBuilder();
-			ListResourceResponse response = registryExtAgent
-					.getAllChildren(requestURL
-							.append(PortalConfiguration.getRegistryJobPrefix())
-							.append("?user=").append(username).toString());
+			ListResourceResponse response = registryExtAgent.getAllChildren(
+					requestURL.append(
+							PortalConfiguration.getRegistryJobPrefix())
+							.toString(), accessToken);
 
 			List<String> internalJobIds = new ArrayList<String>();
 
@@ -252,8 +252,8 @@ public class SearchResult extends ActionSupport implements SessionAware,
 				GetResourceResponse resp = registryExtAgent.getResource(url
 						.append(PortalConfiguration.getRegistryJobPrefix())
 						.append(jobId).append(RegistryExtAgent.separator)
-						.append(Constants.WSO2_JOB_PROP_FNAME).append("?user=")
-						.append(username).toString());
+						.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
+						accessToken);
 
 				Properties jobProp = new Properties();
 				jobProp.load(resp.getIs());

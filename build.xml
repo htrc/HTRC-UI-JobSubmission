@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<project name="HTRC-UI-JobSubmission" default="archive" basedir=".">
+	<description>
+		Sloan job submission using Struts 2
+    </description>
+
+	<property name="project.base.dir" value="." />
+	<property name="source.home" value="${project.base.dir}/src" />
+	<property name="src.test.dir" value="${project.base.dir}/test" />
+	<property name="lib.home" value="${project.base.dir}/WebContent/WEB-INF/lib" />
+	<property name="webapp.home" value="${project.base.dir}/WebContent" />
+	<property name="resource.home" value="${project.base.dir}/resources" />
+	<property name="build.home" value="${project.base.dir}/build" />
+	<property name="dist.home" value="${project.base.dir}/dist" />
+
+	<property name="compile.debug" value="true" />
+	<property name="compile.deprecation" value="false" />
+	<property name="compile.optimize" value="true" />
+
+	<property name="app.name" value="sloan-job-sub" />
+	<property name="app.version" value="0.1" />
+	<!-- <property name="dist.name" value="${app.name}-${app.version}" /> -->
+	<property name="dist.name" value="${app.name}" />
+
+	<target name="clean" description="Delete old build and dist directories">
+		<delete dir="${dist.home}" />
+		<delete dir="${build.home}" />
+	</target>
+
+	<target name="init" depends="clean" description="Create build directory">
+		<mkdir dir="${build.home}" />
+	</target>
+
+	<target name="compile" depends="init" description="Compile Java sources">
+		<mkdir dir="${build.home}/WEB-INF/classes" />
+		<javac srcdir="${source.home}" destdir="${build.home}/WEB-INF/classes" 
+			debug="${compile.debug}" deprecation="${compile.deprecation}" optimize="${compile.optimize}" source="1.6" target="1.6">
+			<classpath>
+				<path>
+					<fileset dir="${lib.home}" />
+				</path>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="build" depends="compile" description="Copies all non Java classes to build directoy">
+		<copy todir="${build.home}">
+			<fileset dir="${webapp.home}" excludes="SVN,**/*.class" />
+		</copy>
+		<copy todir="${build.home}/WEB-INF/classes">
+			<fileset dir="${source.home}" excludes="SVN,**/*.java" />
+		</copy>
+		<copy todir="${build.home}/WEB-INF/classes">
+			<fileset dir="${resource.home}" excludes="SVN" />
+		</copy>
+	</target>
+
+	<target name="archive" depends="build" 
+		description="Create binary archive of all files in dist.home">
+		<mkdir dir="${dist.home}" />
+		<jar jarfile="${dist.home}/${dist.name}.war" basedir="${build.home}" />
+	</target>
+</project>
+

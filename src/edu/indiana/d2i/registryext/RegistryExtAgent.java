@@ -44,7 +44,7 @@ public class RegistryExtAgent {
 
 	private String registryEPR = null;
 	public static final String separator = "/";
-	
+
 	// prefix for file related operations
 	private static String FILEOPPREFIX = "files";
 
@@ -219,9 +219,10 @@ public class RegistryExtAgent {
 	 * @throws IllegalStateException
 	 * @throws JAXBException
 	 */
-	public ListResourceResponse getAllChildren(String repoPath)
-			throws RegistryExtException, ClientProtocolException, IOException,
-			IllegalStateException, JAXBException {
+	public ListResourceResponse getAllChildren(String repoPath,
+			String accessToken) throws RegistryExtException,
+			ClientProtocolException, IOException, IllegalStateException,
+			JAXBException {
 
 		int statusCode = 200;
 
@@ -235,6 +236,7 @@ public class RegistryExtAgent {
 		OptionsMethod options = new OptionsMethod(requestURL);
 
 		options.addRequestHeader("Accept", "application/vnd.htrc-entry+xml");
+		options.addRequestHeader("Authorization", "Bearer " + accessToken);
 
 		try {
 
@@ -273,8 +275,8 @@ public class RegistryExtAgent {
 
 	}
 
-	public void deleteResource(String repoPath) throws HttpException,
-			IOException, RegistryExtException {
+	public void deleteResource(String repoPath, String accessToken)
+			throws HttpException, IOException, RegistryExtException {
 
 		String requestURL = composeURL(FILEOPPREFIX, repoPath);
 
@@ -284,6 +286,7 @@ public class RegistryExtAgent {
 
 		HttpClient httpclient = new HttpClient();
 		DeleteMethod delete = new DeleteMethod(requestURL);
+		delete.addRequestHeader("Authorization", "Bearer " + accessToken);
 
 		try {
 
@@ -302,8 +305,8 @@ public class RegistryExtAgent {
 
 	}
 
-	public boolean isResourceExist(String repoPath) throws HttpException,
-			IOException, RegistryExtException {
+	public boolean isResourceExist(String repoPath, String accessToken)
+			throws HttpException, IOException, RegistryExtException {
 
 		boolean exist = true;
 
@@ -315,6 +318,7 @@ public class RegistryExtAgent {
 
 		HttpClient httpclient = new HttpClient();
 		HeadMethod head = new HeadMethod(requestURL);
+		head.addRequestHeader("Authorization", "Bearer " + accessToken);
 
 		try {
 
@@ -348,8 +352,9 @@ public class RegistryExtAgent {
 	 * @throws HttpException
 	 * @throws IOException
 	 */
-	public String postResource(String repoPath, ResourceISType resource)
-			throws RegistryExtException, HttpException, IOException {
+	public String postResource(String repoPath, String accessToken,
+			ResourceISType resource) throws RegistryExtException,
+			HttpException, IOException {
 
 		String requestURL = composeURL(FILEOPPREFIX, repoPath);
 
@@ -360,7 +365,7 @@ public class RegistryExtAgent {
 		HttpClient httpclient = new HttpClient();
 		PutMethod put = new PutMethod(requestURL);
 		put.addRequestHeader("Content-Type", resource.getMediaType());
-
+		put.addRequestHeader("Authorization", "Bearer " + accessToken);
 		put.setRequestEntity(new InputStreamRequestEntity(resource.getIs()));
 
 		try {
@@ -381,7 +386,7 @@ public class RegistryExtAgent {
 		return repoPath;
 	}
 
-	public String postMultiResources(String repoPath,
+	public String postMultiResources(String repoPath, String accessToken,
 			List<ResourceFileType> resourceList) throws HttpException,
 			IOException, RegistryExtException {
 
@@ -394,6 +399,7 @@ public class RegistryExtAgent {
 		HttpClient httpclient = new HttpClient();
 		PostMethod post = new PostMethod(requestURL);
 		post.addRequestHeader("Content-Type", "multipart/form-data");
+		post.addRequestHeader("Authorization", "Bearer " + accessToken);
 
 		Part[] parts = new Part[resourceList.size()];
 		for (int i = 0; i < resourceList.size(); i++) {
@@ -423,7 +429,7 @@ public class RegistryExtAgent {
 		return repoPath;
 	}
 
-	public GetResourceResponse getResource(String repoPath)
+	public GetResourceResponse getResource(String repoPath, String accessToken)
 			throws HttpException, IOException, RegistryExtException {
 		String requestURL = composeURL(FILEOPPREFIX, repoPath);
 
@@ -433,6 +439,7 @@ public class RegistryExtAgent {
 
 		HttpClient httpclient = new HttpClient();
 		GetMethod get = new GetMethod(requestURL);
+		get.addRequestHeader("Authorization", "Bearer " + accessToken);
 
 		httpclient.executeMethod(get);
 

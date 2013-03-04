@@ -22,19 +22,19 @@ import edu.indiana.d2i.registryext.schema.Entry;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 
 public class TestSuite {
-	private static String registryEPR = "https://htrc4.pti.indiana.edu:9443/ExtensionAPI-0.1.0/services/";
+	private static String registryEPR = "https://htrc4.pti.indiana.edu:9443/ExtensionAPI-0.2.0/services/";
 	private static boolean isRegistrySelfSigned = false;
 
-	public static void testRegistryExtListChildren()
+	public static void testRegistryExtListChildren(String accessToken)
 			throws ClientProtocolException, IllegalStateException,
 			RegistryExtException, IOException, JAXBException {
 
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String repoPath = "?recursive=false&user=gruan";
+		String repoPath = "/sloan/worksets?recursive=false";
 
-		ListResourceResponse response = registryAgent.getAllChildren(repoPath);
+		ListResourceResponse response = registryAgent.getAllChildren(repoPath, accessToken);
 
 		if (response.getStatusCode() == 404) {
 			System.out.println(repoPath + " doesn't exist");
@@ -46,32 +46,32 @@ public class TestSuite {
 
 	}
 
-	public static void testRegistryExtDeletion() throws HttpException,
+	public static void testRegistryExtDeletion(String accessToken) throws HttpException,
 			IOException, RegistryExtException {
 
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String repoPath = "/a/b/workset.zip?user=gruan";
-		registryAgent.deleteResource(repoPath);
+		String repoPath = "/a/b/workset.zip";
+		registryAgent.deleteResource(repoPath, accessToken);
 
 	}
 
-	public static void testRegistryExtResExist() throws HttpException,
+	public static void testRegistryExtResExist(String accessToken) throws HttpException,
 			IOException, RegistryExtException {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String repoPath = "/a/b/bar.xml?user=gruan";
-		if (registryAgent.isResourceExist(repoPath)) {
+		String repoPath = "/a/b/bar.xml";
+		if (registryAgent.isResourceExist(repoPath, accessToken)) {
 			System.out.println(String.format("Resource %s exists", repoPath));
 		} else {
 			System.out.println(String.format("Resource %s doesn't exist",
 					repoPath));
 		}
 
-		repoPath = "/c?user=gruan";
-		if (registryAgent.isResourceExist(repoPath)) {
+		repoPath = "/c";
+		if (registryAgent.isResourceExist(repoPath, accessToken)) {
 			System.out.println(String.format("Resource %s exists", repoPath));
 		} else {
 			System.out.println(String.format("Resource %s doesn't exist",
@@ -79,29 +79,29 @@ public class TestSuite {
 		}
 	}
 
-	public static void testRegistryExtPutRes() throws HttpException,
+	public static void testRegistryExtPutRes(String accessToken) throws HttpException,
 			IOException, RegistryExtException {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
 		String testFilePath = "D:\\tmp\\jobs.zip";
-		String repoPath = "/a/b/workset.zip?user=gruan";
+		String repoPath = "/a/b/workset.zip";
 
-		String destPath = registryAgent.postResource(repoPath,
+		String destPath = registryAgent.postResource(repoPath, accessToken,
 				new ResourceISType(new FileInputStream(testFilePath),
 						"workset.zip", "application/zip"));
 
 		System.out.println("Resource has been posted to " + destPath);
 	}
 
-	public static void testRegistryExtPostMultiRes() throws IOException,
+	public static void testRegistryExtPostMultiRes(String accessToken) throws IOException,
 			RegistryExtException {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
 		final String localTestFilePath1 = "D:\\tmp\\token.tmp";
 		final String localTestFilePath2 = "D:\\tmp\\niodev.jar";
-		String repoPath = "/c?user=gruan";
+		String repoPath = "/c";
 
 		List<ResourceFileType> resourceList = new ArrayList<ResourceFileType>() {
 			private static final long serialVersionUID = 1L;
@@ -114,20 +114,20 @@ public class TestSuite {
 			}
 		};
 
-		String destPath = registryAgent.postMultiResources(repoPath,
+		String destPath = registryAgent.postMultiResources(repoPath, accessToken,
 				resourceList);
 
 		System.out.println("Resource has been posted to " + destPath);
 	}
 
-	public static void testRegistryExtGetRes() throws HttpException,
+	public static void testRegistryExtGetRes(String accessToken) throws HttpException,
 			IOException, RegistryExtException {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
 				isRegistrySelfSigned);
 
-		String repoPath = "/c/token.tmp?user=gruan";
+		String repoPath = "/c/token.tmp";
 
-		GetResourceResponse response = registryAgent.getResource(repoPath);
+		GetResourceResponse response = registryAgent.getResource(repoPath, accessToken);
 
 		BufferedReader reader = null;
 
@@ -159,12 +159,14 @@ public class TestSuite {
 			JAXBException {
 		// TODO Auto-generated method stub
 
-		testRegistryExtListChildren();
-		// testRegistryExtDeletion();
-		// testRegistryExtResExist();
-		// testRegistryExtPutRes();
-		// testRegistryExtPostMultiRes();
-		// testRegistryExtGetRes();
+		String accessToken = "3e64c24f4f2a2ecd2b48581bf8d083a5";
+		
+		testRegistryExtListChildren(accessToken);
+		// testRegistryExtDeletion(accessToken);
+		// testRegistryExtResExist(accessToken);
+		// testRegistryExtPutRes(accessToken);
+		// testRegistryExtPostMultiRes(accessToken);
+		// testRegistryExtGetRes(accessToken);
 	}
 
 }

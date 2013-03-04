@@ -61,7 +61,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 	private String loadWorksetInfo() {
 
 		Map<String, Object> session = ActionContext.getContext().getSession();
-		String username = (String) session.get(Constants.SESSION_USERNAME);
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		try {
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
@@ -69,11 +69,10 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 					.getRegistryExtAgent();
 
 			StringBuilder requestURL = new StringBuilder();
-			ListResourceResponse response = registryExtAgent
-					.getAllChildren(requestURL
-							.append(PortalConfiguration
-									.getRegistryWorksetPrefix())
-							.append("?user=").append(username).toString());
+			ListResourceResponse response = registryExtAgent.getAllChildren(
+					requestURL.append(
+							PortalConfiguration.getRegistryWorksetPrefix())
+							.toString(), accessToken);
 
 			List<String> userWorksetRepo = new ArrayList<String>();
 
@@ -93,8 +92,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 				StringBuilder url = new StringBuilder();
 				ListResourceResponse resp = registryExtAgent.getAllChildren(url
 						.append(PortalConfiguration.getRegistryWorksetPrefix())
-						.append(worksetId).append("?user=").append(username)
-						.toString());
+						.append(worksetId).toString(), accessToken);
 
 				List<String> items = new ArrayList<String>();
 				for (Entry entry : resp.getEntries().getEntry()) {
@@ -113,8 +111,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 				GetResourceResponse getResp = registryExtAgent.getResource(url
 						.append(PortalConfiguration.getRegistryWorksetPrefix())
 						.append(worksetId).append(RegistryExtAgent.separator)
-						.append(Constants.WSO2_WORKSET_META_FNAME)
-						.append("?user=").append(username).toString());
+						.append(Constants.WSO2_WORKSET_META_FNAME).toString(),
+						accessToken);
 
 				Properties worksetMeta = new Properties();
 				worksetMeta.load(getResp.getIs());
@@ -160,6 +158,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 	public String updateWorkSet() {
 		Map<String, Object> session = ActionContext.getContext().getSession();
 		String username = (String) session.get(Constants.SESSION_USERNAME);
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		// update list of current worksets
 		List<Integer> updateList = new ArrayList<Integer>();
@@ -226,8 +225,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 								username, worksetPath));
 
 						registryExtAgent.deleteResource(new StringBuilder()
-								.append(worksetPath).append("?user=")
-								.append(username).toString());
+								.append(worksetPath).toString(), accessToken);
 
 					} else {
 
@@ -242,10 +240,10 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 							// remove old workset archive file
 
 							ListResourceResponse resp = registryExtAgent
-									.getAllChildren(new StringBuilder()
-											.append(worksetPath)
-											.append("?user=").append(username)
-											.toString());
+									.getAllChildren(
+											new StringBuilder().append(
+													worksetPath).toString(),
+											accessToken);
 
 							List<String> items = new ArrayList<String>();
 							for (Entry entry : resp.getEntries().getEntry()) {
@@ -261,11 +259,13 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 								}
 							}
 
-							registryExtAgent.deleteResource(new StringBuilder()
-									.append(worksetPath)
-									.append(RegistryExtAgent.separator)
-									.append(archiveFileName).append("?user=")
-									.append(username).toString());
+							registryExtAgent
+									.deleteResource(
+											new StringBuilder()
+													.append(worksetPath)
+													.append(RegistryExtAgent.separator)
+													.append(archiveFileName)
+													.toString(), accessToken);
 
 							logger.info("Deleted old workset file "
 									+ archiveFileName);
@@ -277,9 +277,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 													.append(worksetPath)
 													.append(RegistryExtAgent.separator)
 													.append(currentWorksetNewFileFileName[idx])
-													.append("?user=")
-													.append(username)
 													.toString(),
+											accessToken,
 											new ResourceISType(
 													new FileInputStream(
 															currentWorksetNewFile[idx]),
@@ -317,8 +316,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 												.append(worksetPath)
 												.append(RegistryExtAgent.separator)
 												.append(Constants.WSO2_WORKSET_META_FNAME)
-												.append("?user=")
-												.append(username).toString(),
+												.toString(),
+										accessToken,
 										new ResourceISType(
 												new ByteArrayInputStream(os
 														.toByteArray()),
@@ -347,10 +346,10 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 							new StringBuilder().append(worksetPath)
 									.append(RegistryExtAgent.separator)
 									.append(newWorksetFileName.get(i))
-									.append("?user=").append(username)
-									.toString(), new ResourceISType(
-									new FileInputStream(newWorkset.get(i)),
-									newWorksetFileName.get(i),
+									.toString(),
+							accessToken,
+							new ResourceISType(new FileInputStream(newWorkset
+									.get(i)), newWorksetFileName.get(i),
 									newWorksetContentType.get(i)));
 
 					logger.info(String.format("New workset %s saved to %s",
@@ -373,9 +372,10 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 							new StringBuilder().append(worksetPath)
 									.append(RegistryExtAgent.separator)
 									.append(Constants.WSO2_WORKSET_META_FNAME)
-									.append("?user=").append(username)
-									.toString(), new ResourceISType(
-									new ByteArrayInputStream(os.toByteArray()),
+									.toString(),
+							accessToken,
+							new ResourceISType(new ByteArrayInputStream(os
+									.toByteArray()),
 									Constants.WSO2_WORKSET_META_FNAME,
 									"text/plain"));
 

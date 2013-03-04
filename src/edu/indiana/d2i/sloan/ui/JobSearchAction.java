@@ -50,7 +50,7 @@ public class JobSearchAction extends ActionSupport implements SessionAware,
 		}
 
 		Map<String, Object> session = ActionContext.getContext().getSession();
-		String username = (String) session.get(Constants.SESSION_USERNAME);
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		try {
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
@@ -58,10 +58,10 @@ public class JobSearchAction extends ActionSupport implements SessionAware,
 					.getRegistryExtAgent();
 
 			StringBuilder requestURL = new StringBuilder();
-			ListResourceResponse response = registryExtAgent
-					.getAllChildren(requestURL
-							.append(PortalConfiguration.getRegistryJobPrefix())
-							.append("?user=").append(username).toString());
+			ListResourceResponse response = registryExtAgent.getAllChildren(
+					requestURL.append(
+							PortalConfiguration.getRegistryJobPrefix())
+							.toString(), accessToken);
 
 			List<String> internalJobIds = new ArrayList<String>();
 
@@ -84,8 +84,8 @@ public class JobSearchAction extends ActionSupport implements SessionAware,
 				GetResourceResponse resp = registryExtAgent.getResource(url
 						.append(PortalConfiguration.getRegistryJobPrefix())
 						.append(jobId).append(RegistryExtAgent.separator)
-						.append(Constants.WSO2_JOB_PROP_FNAME).append("?user=")
-						.append(username).toString());
+						.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
+						accessToken);
 
 				Properties jobProp = new Properties();
 				jobProp.load(resp.getIs());
