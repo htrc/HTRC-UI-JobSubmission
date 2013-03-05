@@ -13,6 +13,8 @@ import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.amber.oauth2.common.exception.OAuthProblemException;
+import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.SessionAware;
 
@@ -60,19 +62,16 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 	 */
 	private String loadWorksetInfo() {
 
-		Map<String, Object> session = ActionContext.getContext().getSession();
-		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
-
 		try {
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
 			RegistryExtAgent registryExtAgent = agentsRepo
 					.getRegistryExtAgent();
 
 			StringBuilder requestURL = new StringBuilder();
-			ListResourceResponse response = registryExtAgent.getAllChildren(
-					requestURL.append(
+			ListResourceResponse response = registryExtAgent
+					.getAllChildren(requestURL.append(
 							PortalConfiguration.getRegistryWorksetPrefix())
-							.toString(), accessToken);
+							.toString());
 
 			List<String> userWorksetRepo = new ArrayList<String>();
 
@@ -92,7 +91,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 				StringBuilder url = new StringBuilder();
 				ListResourceResponse resp = registryExtAgent.getAllChildren(url
 						.append(PortalConfiguration.getRegistryWorksetPrefix())
-						.append(worksetId).toString(), accessToken);
+						.append(worksetId).toString());
 
 				List<String> items = new ArrayList<String>();
 				for (Entry entry : resp.getEntries().getEntry()) {
@@ -111,8 +110,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 				GetResourceResponse getResp = registryExtAgent.getResource(url
 						.append(PortalConfiguration.getRegistryWorksetPrefix())
 						.append(worksetId).append(RegistryExtAgent.separator)
-						.append(Constants.WSO2_WORKSET_META_FNAME).toString(),
-						accessToken);
+						.append(Constants.WSO2_WORKSET_META_FNAME).toString());
 
 				Properties worksetMeta = new Properties();
 				worksetMeta.load(getResp.getIs());
@@ -145,6 +143,14 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
+		} catch (OAuthSystemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthProblemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
 		}
 
 		return SUCCESS;
@@ -158,7 +164,6 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 	public String updateWorkSet() {
 		Map<String, Object> session = ActionContext.getContext().getSession();
 		String username = (String) session.get(Constants.SESSION_USERNAME);
-		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		// update list of current worksets
 		List<Integer> updateList = new ArrayList<Integer>();
@@ -225,7 +230,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 								username, worksetPath));
 
 						registryExtAgent.deleteResource(new StringBuilder()
-								.append(worksetPath).toString(), accessToken);
+								.append(worksetPath).toString());
 
 					} else {
 
@@ -240,10 +245,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 							// remove old workset archive file
 
 							ListResourceResponse resp = registryExtAgent
-									.getAllChildren(
-											new StringBuilder().append(
-													worksetPath).toString(),
-											accessToken);
+									.getAllChildren(new StringBuilder().append(
+											worksetPath).toString());
 
 							List<String> items = new ArrayList<String>();
 							for (Entry entry : resp.getEntries().getEntry()) {
@@ -259,13 +262,10 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 								}
 							}
 
-							registryExtAgent
-									.deleteResource(
-											new StringBuilder()
-													.append(worksetPath)
-													.append(RegistryExtAgent.separator)
-													.append(archiveFileName)
-													.toString(), accessToken);
+							registryExtAgent.deleteResource(new StringBuilder()
+									.append(worksetPath)
+									.append(RegistryExtAgent.separator)
+									.append(archiveFileName).toString());
 
 							logger.info("Deleted old workset file "
 									+ archiveFileName);
@@ -278,7 +278,6 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 													.append(RegistryExtAgent.separator)
 													.append(currentWorksetNewFileFileName[idx])
 													.toString(),
-											accessToken,
 											new ResourceISType(
 													new FileInputStream(
 															currentWorksetNewFile[idx]),
@@ -317,7 +316,6 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 												.append(RegistryExtAgent.separator)
 												.append(Constants.WSO2_WORKSET_META_FNAME)
 												.toString(),
-										accessToken,
 										new ResourceISType(
 												new ByteArrayInputStream(os
 														.toByteArray()),
@@ -346,10 +344,9 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 							new StringBuilder().append(worksetPath)
 									.append(RegistryExtAgent.separator)
 									.append(newWorksetFileName.get(i))
-									.toString(),
-							accessToken,
-							new ResourceISType(new FileInputStream(newWorkset
-									.get(i)), newWorksetFileName.get(i),
+									.toString(), new ResourceISType(
+									new FileInputStream(newWorkset.get(i)),
+									newWorksetFileName.get(i),
 									newWorksetContentType.get(i)));
 
 					logger.info(String.format("New workset %s saved to %s",
@@ -372,10 +369,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 							new StringBuilder().append(worksetPath)
 									.append(RegistryExtAgent.separator)
 									.append(Constants.WSO2_WORKSET_META_FNAME)
-									.toString(),
-							accessToken,
-							new ResourceISType(new ByteArrayInputStream(os
-									.toByteArray()),
+									.toString(), new ResourceISType(
+									new ByteArrayInputStream(os.toByteArray()),
 									Constants.WSO2_WORKSET_META_FNAME,
 									"text/plain"));
 
@@ -398,6 +393,14 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 			addActionError(e.getMessage());
 			return ERROR;
 		} catch (JAXBException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthSystemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthProblemException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;

@@ -19,7 +19,10 @@ public class AgentsRepoSingleton {
 		sigiriAgent = new SigiriAgent(PortalConfiguration.getSigiriEPR());
 		registryExtAgent = new RegistryExtAgent(
 				PortalConfiguration.getRegistryEPR(),
-				PortalConfiguration.getRegistrySelfSign());
+				PortalConfiguration.getRegistrySelfSign(),
+				PortalConfiguration.getOAuth2TokenEndpoint(),
+				PortalConfiguration.getOAuth2ClientID(),
+				PortalConfiguration.getOAuth2ClientSecrete());
 	}
 
 	public static synchronized AgentsRepoSingleton getInstance()

@@ -9,10 +9,11 @@ import java.util.Properties;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.amber.oauth2.common.exception.OAuthProblemException;
+import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.SessionAware;
 
-import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
 import edu.indiana.d2i.registryext.RegistryExtAgent;
@@ -144,8 +145,6 @@ public class SearchResult extends ActionSupport implements SessionAware,
 	}
 
 	public String execute() {
-		Map<String, Object> session = ActionContext.getContext().getSession();
-		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("Job %s is selected", selectedJob));
@@ -166,13 +165,12 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 			StringBuilder requestURL = new StringBuilder();
 
-			GetResourceResponse response = registryExtAgent.getResource(
-					requestURL
+			GetResourceResponse response = registryExtAgent
+					.getResource(requestURL
 							.append(PortalConfiguration.getRegistryJobPrefix())
 							.append(selectedJob)
 							.append(RegistryExtAgent.separator)
-							.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
-					accessToken);
+							.append(Constants.WSO2_JOB_PROP_FNAME).toString());
 
 			Properties jobProp = new Properties();
 			jobProp.load(response.getIs());
@@ -199,14 +197,20 @@ public class SearchResult extends ActionSupport implements SessionAware,
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
+		} catch (OAuthSystemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthProblemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
 		}
 
 		return SUCCESS;
 	}
 
 	public String showSearchRes() {
-		Map<String, Object> session = ActionContext.getContext().getSession();
-		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Job title query string =" + selectedJobTitle);
@@ -225,10 +229,10 @@ public class SearchResult extends ActionSupport implements SessionAware,
 					.getRegistryExtAgent();
 
 			StringBuilder requestURL = new StringBuilder();
-			ListResourceResponse response = registryExtAgent.getAllChildren(
-					requestURL.append(
+			ListResourceResponse response = registryExtAgent
+					.getAllChildren(requestURL.append(
 							PortalConfiguration.getRegistryJobPrefix())
-							.toString(), accessToken);
+							.toString());
 
 			List<String> internalJobIds = new ArrayList<String>();
 
@@ -252,8 +256,7 @@ public class SearchResult extends ActionSupport implements SessionAware,
 				GetResourceResponse resp = registryExtAgent.getResource(url
 						.append(PortalConfiguration.getRegistryJobPrefix())
 						.append(jobId).append(RegistryExtAgent.separator)
-						.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
-						accessToken);
+						.append(Constants.WSO2_JOB_PROP_FNAME).toString());
 
 				Properties jobProp = new Properties();
 				jobProp.load(resp.getIs());
@@ -330,6 +333,14 @@ public class SearchResult extends ActionSupport implements SessionAware,
 			addActionError(e.getMessage());
 			return ERROR;
 		} catch (JAXBException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthSystemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthProblemException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;

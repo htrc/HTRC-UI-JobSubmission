@@ -28,7 +28,8 @@ public class SchemaUtil {
 	 */
 	public static JobDescriptionType user2internal(
 			edu.indiana.d2i.sloan.schema.user.JobDescriptionType userJobDesp,
-			String username, String jobInternalId, String archiveFileName,
+			String accessToken, String refreshToken, String username,
+			String jobInternalId, String archiveFileName,
 			List<WorksetMetaInfo> worksetInfoList) throws IOException {
 
 		JobDescriptionType internalJobDesp = new JobDescriptionType();
@@ -92,8 +93,13 @@ public class SchemaUtil {
 
 		/* set token path */
 		TransferRequestType tokenPath = new TransferRequestType();
-		tokenPath.setSrcPath(PortalConfiguration.getRegistryJobPrefix()
-				+ Constants.OAUTH2_TOKEN_FNAME);
+		tokenPath.setSrcPath(accessToken + " " + refreshToken);
+
+		/**
+		 * Since in above we pass in the value of access token and refresh
+		 * token, the following fields can effectively be ignored by Sigiri
+		 * daemon
+		 */
 		tokenPath.setSrcType(TransferType.WSO_2_REGISTRY);
 		tokenPath.setDestPath(Constants.OAUTH2_TOKEN_FNAME);
 		tokenPath.setDestType(TransferType.HEADNODE);

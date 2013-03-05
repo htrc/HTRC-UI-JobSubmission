@@ -17,6 +17,8 @@ import java.util.UUID;
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.amber.oauth2.common.exception.OAuthProblemException;
+import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -151,8 +153,6 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 	 * @return
 	 */
 	private String loadWorksetInfo() {
-		Map<String, Object> session = ActionContext.getContext().getSession();
-		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		try {
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
@@ -160,10 +160,10 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 					.getRegistryExtAgent();
 
 			StringBuilder requestURL = new StringBuilder();
-			ListResourceResponse response = registryExtAgent.getAllChildren(
-					requestURL.append(
+			ListResourceResponse response = registryExtAgent
+					.getAllChildren(requestURL.append(
 							PortalConfiguration.getRegistryWorksetPrefix())
-							.toString(), accessToken);
+							.toString());
 
 			List<String> userWorksetRepo = new ArrayList<String>();
 
@@ -183,7 +183,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				StringBuilder url = new StringBuilder();
 				ListResourceResponse resp = registryExtAgent.getAllChildren(url
 						.append(PortalConfiguration.getRegistryWorksetPrefix())
-						.append(worksetId).toString(), accessToken);
+						.append(worksetId).toString());
 
 				List<String> items = new ArrayList<String>();
 				for (Entry entry : resp.getEntries().getEntry()) {
@@ -202,8 +202,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				GetResourceResponse getResp = registryExtAgent.getResource(url
 						.append(PortalConfiguration.getRegistryWorksetPrefix())
 						.append(worksetId).append(RegistryExtAgent.separator)
-						.append(Constants.WSO2_WORKSET_META_FNAME).toString(),
-						accessToken);
+						.append(Constants.WSO2_WORKSET_META_FNAME).toString());
 
 				Properties worksetMeta = new Properties();
 				worksetMeta.load(getResp.getIs());
@@ -233,6 +232,14 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			addActionError(e.getMessage());
 			return ERROR;
 		} catch (JAXBException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthSystemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthProblemException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
@@ -304,6 +311,14 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
+		} catch (OAuthSystemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthProblemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
 		} finally {
 			String errString = "Exception occurred when cleaning up dangling job:";
 			try {
@@ -313,6 +328,10 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			} catch (IOException e) {
 				logger.error(errString + e.getMessage(), e);
 			} catch (RegistryExtException e) {
+				logger.error(errString + e.getMessage(), e);
+			} catch (OAuthSystemException e) {
+				logger.error(errString + e.getMessage(), e);
+			} catch (OAuthProblemException e) {
 				logger.error(errString + e.getMessage(), e);
 			}
 		}
@@ -326,14 +345,12 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 	 * @throws RegistryExtException
 	 * @throws IOException
 	 * @throws HttpException
+	 * @throws OAuthProblemException
+	 * @throws OAuthSystemException
 	 */
 	private void removeDanglingJob() throws HttpException, IOException,
-			RegistryExtException {
+			RegistryExtException, OAuthSystemException, OAuthProblemException {
 		if (danglingJobId != null) {
-
-			Map<String, Object> session = ActionContext.getContext()
-					.getSession();
-			String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
 			RegistryExtAgent registryExtAgent = agentsRepo
@@ -347,14 +364,12 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 			requestURL.append(PortalConfiguration.getRegistryJobPrefix())
 					.append(danglingJobId);
 
-			if (registryExtAgent.isResourceExist(requestURL.toString(),
-					accessToken)) {
+			if (registryExtAgent.isResourceExist(requestURL.toString())) {
 				logger.info(String.format(
 						"Going to clean up dangling job %s in registry",
 						requestURL.toString()));
 
-				registryExtAgent.deleteResource(requestURL.toString(),
-						accessToken);
+				registryExtAgent.deleteResource(requestURL.toString());
 
 				logger.info(String.format(
 						"Removed dangling job %s in registry",
@@ -369,11 +384,13 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 	private void uploadJob() throws RemoteException, JAXBException,
 			NullSigiriJobIdException, XMLStreamException, RegistryExtException,
-			IOException {
+			IOException, OAuthSystemException, OAuthProblemException {
 
 		Map<String, Object> session = ActionContext.getContext().getSession();
 		String username = (String) session.get(Constants.SESSION_USERNAME);
 		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
+		String refreshToken = (String) session
+				.get(Constants.SESSION_REFRESH_TOKEN);
 
 		AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
 		RegistryExtAgent registryExtAgent = agentsRepo.getRegistryExtAgent();
@@ -396,7 +413,6 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				new StringBuilder()
 						.append(PortalConfiguration.getRegistryJobPrefix())
 						.append(Constants.OAUTH2_TOKEN_FNAME).toString(),
-				accessToken,
 				new ResourceISType(new ByteArrayInputStream(os.toByteArray()),
 						Constants.OAUTH2_TOKEN_FNAME, "text/plain"));
 
@@ -445,8 +461,8 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		 * Convert user schema to internal schema used by sigiri daemon
 		 */
 		JobDescriptionType internalJobDesp = SchemaUtil.user2internal(
-				userJobDesp, username, internalJobId, jobArchiveFileName,
-				selectedWorksets);
+				userJobDesp, accessToken, refreshToken, username,
+				internalJobId, jobArchiveFileName, selectedWorksets);
 
 		String internalJobDespStr = InternalSchemaUtil
 				.toXMLString(internalJobDesp);
@@ -469,7 +485,6 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		outPath = registryExtAgent.postResource(
 				new StringBuilder().append(jobPath)
 						.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
-				accessToken,
 				new ResourceISType(new ByteArrayInputStream(os.toByteArray()),
 						Constants.WSO2_JOB_PROP_FNAME, "text/plain"));
 
@@ -480,9 +495,9 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		outPath = registryExtAgent.postResource(
 				new StringBuilder().append(jobPath)
 						.append(Constants.WSO2_JOB_DESP_FNAME).toString(),
-				accessToken, new ResourceISType(new ByteArrayInputStream(
-						internalJobDespStr.getBytes()),
-						Constants.WSO2_JOB_DESP_FNAME, jobDespContentType));
+				new ResourceISType(new ByteArrayInputStream(internalJobDespStr
+						.getBytes()), Constants.WSO2_JOB_DESP_FNAME,
+						jobDespContentType));
 
 		logger.info(String.format("Job description file %s saved to %s",
 				Constants.WSO2_JOB_DESP_FNAME, outPath));
@@ -492,7 +507,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				new StringBuilder().append(jobPath)
 						.append(PortalConfiguration.getRegistryArchiveFolder())
 						.append(RegistryExtAgent.separator)
-						.append(jobArchiveFileName).toString(), accessToken,
+						.append(jobArchiveFileName).toString(),
 				new ResourceISType(new FileInputStream(jobArchive),
 						jobArchiveFileName, jobArchiveContentType));
 
@@ -530,7 +545,6 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		outPath = registryExtAgent.postResource(
 				new StringBuilder().append(jobPath)
 						.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
-				accessToken,
 				new ResourceISType(new ByteArrayInputStream(os.toByteArray()),
 						Constants.WSO2_JOB_PROP_FNAME, "text/plain"));
 

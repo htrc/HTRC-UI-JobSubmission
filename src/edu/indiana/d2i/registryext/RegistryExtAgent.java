@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -16,6 +17,13 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBException;
 
+import org.apache.amber.oauth2.client.OAuthClient;
+import org.apache.amber.oauth2.client.URLConnectionClient;
+import org.apache.amber.oauth2.client.request.OAuthClientRequest;
+import org.apache.amber.oauth2.client.response.OAuthClientResponse;
+import org.apache.amber.oauth2.common.exception.OAuthProblemException;
+import org.apache.amber.oauth2.common.exception.OAuthSystemException;
+import org.apache.amber.oauth2.common.message.types.GrantType;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
@@ -33,9 +41,12 @@ import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.log4j.Logger;
 
+import com.opensymphony.xwork2.ActionContext;
+
 import edu.indiana.d2i.registryext.schema.Entries;
 import edu.indiana.d2i.registryext.schema.Entry;
 import edu.indiana.d2i.registryext.schema.FileSchemaUtil;
+import edu.indiana.d2i.sloan.Constants;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 
 public class RegistryExtAgent {
@@ -43,19 +54,51 @@ public class RegistryExtAgent {
 			.getLogger(RegistryExtAgent.class);
 
 	private String registryEPR = null;
+
+	private String ACCESS_TOKEN_URL = null;
+	private String CLIENT_ID = null;
+	private String CLIENT_SECRET = null;
+
 	public static final String separator = "/";
 
 	// prefix for file related operations
 	private static String FILEOPPREFIX = "files";
 
-	public RegistryExtAgent(String registryEPR, boolean isSelfSigned) {
+	public RegistryExtAgent(String registryEPR, boolean isSelfSigned,
+			String ACCESS_TOKEN_URL, String CLIENT_ID, String CLIENT_SECRET) {
 		this.registryEPR = registryEPR;
+		this.ACCESS_TOKEN_URL = ACCESS_TOKEN_URL;
+		this.CLIENT_ID = CLIENT_ID;
+		this.CLIENT_SECRET = CLIENT_SECRET;
 
 		if (isSelfSigned) {
 			if (!disableSSL()) {
 				logger.error("Cannot disable SSL");
 			}
 		}
+	}
+
+	private void refreshToken(Map<String, Object> session)
+			throws OAuthSystemException, OAuthProblemException {
+		String refreshToken = (String) session
+				.get(Constants.SESSION_REFRESH_TOKEN);
+
+		OAuthClientRequest refreshTokenRequest = OAuthClientRequest
+				.tokenLocation(ACCESS_TOKEN_URL)
+				.setGrantType(GrantType.REFRESH_TOKEN)
+				.setRefreshToken(refreshToken).setClientId(CLIENT_ID)
+				.setClientSecret(CLIENT_SECRET).buildBodyMessage();
+
+		OAuthClient refreshTokenClient = new OAuthClient(
+				new URLConnectionClient());
+		OAuthClientResponse refreshTokenResponse = refreshTokenClient
+				.accessToken(refreshTokenRequest);
+
+		String refreshedAccessToken = refreshTokenResponse
+				.getParam(Constants.OAUTH2_ACCESS_TOKEN);
+
+		// Update access token
+		session.put(Constants.SESSION_TOKEN, refreshedAccessToken);
 	}
 
 	private boolean disableSSL() {
@@ -218,12 +261,17 @@ public class RegistryExtAgent {
 	 * @throws IOException
 	 * @throws IllegalStateException
 	 * @throws JAXBException
+	 * @throws OAuthProblemException
+	 * @throws OAuthSystemException
 	 */
-	public ListResourceResponse getAllChildren(String repoPath,
-			String accessToken) throws RegistryExtException,
-			ClientProtocolException, IOException, IllegalStateException,
-			JAXBException {
+	public ListResourceResponse getAllChildren(String repoPath)
+			throws RegistryExtException, ClientProtocolException, IOException,
+			IllegalStateException, JAXBException, OAuthSystemException,
+			OAuthProblemException {
 
+		Map<String, Object> session = ActionContext.getContext().getSession();
+
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 		int statusCode = 200;
 
 		String requestURL = composeURL(FILEOPPREFIX, repoPath);
@@ -243,6 +291,26 @@ public class RegistryExtAgent {
 			httpclient.executeMethod(options);
 
 			statusCode = options.getStatusLine().getStatusCode();
+
+			/* handle token expiration */
+			if (statusCode == 401) {
+				logger.info(String.format(
+						"Access token %s expired, going to refresh it",
+						accessToken));
+
+				refreshToken(session);
+
+				// use refreshed access token
+				accessToken = (String) session.get(Constants.SESSION_TOKEN);
+				options.addRequestHeader("Authorization", "Bearer "
+						+ accessToken);
+
+				// re-send the request
+				httpclient.executeMethod(options);
+
+				statusCode = options.getStatusLine().getStatusCode();
+
+			}
 
 			if (statusCode == 404) {
 				logger.equals("List request URL=" + requestURL
@@ -275,8 +343,14 @@ public class RegistryExtAgent {
 
 	}
 
-	public void deleteResource(String repoPath, String accessToken)
-			throws HttpException, IOException, RegistryExtException {
+	public void deleteResource(String repoPath) throws HttpException,
+			IOException, RegistryExtException, OAuthSystemException,
+			OAuthProblemException {
+
+		Map<String, Object> session = ActionContext.getContext().getSession();
+
+		int statusCode = 200;
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		String requestURL = composeURL(FILEOPPREFIX, repoPath);
 
@@ -292,7 +366,28 @@ public class RegistryExtAgent {
 
 			httpclient.executeMethod(delete);
 
-			if (delete.getStatusLine().getStatusCode() != 204) {
+			statusCode = delete.getStatusLine().getStatusCode();
+			/* handle token expiration */
+			if (statusCode == 401) {
+				logger.info(String.format(
+						"Access token %s expired, going to refresh it",
+						accessToken));
+
+				refreshToken(session);
+
+				// use refreshed access token
+				accessToken = (String) session.get(Constants.SESSION_TOKEN);
+				delete.addRequestHeader("Authorization", "Bearer "
+						+ accessToken);
+
+				// re-send the request
+				httpclient.executeMethod(delete);
+
+				statusCode = delete.getStatusLine().getStatusCode();
+
+			}
+
+			if (statusCode != 204) {
 				throw new RegistryExtException(
 						"Failed in delete resource : HTTP error code : "
 								+ delete.getStatusLine().getStatusCode());
@@ -305,8 +400,13 @@ public class RegistryExtAgent {
 
 	}
 
-	public boolean isResourceExist(String repoPath, String accessToken)
-			throws HttpException, IOException, RegistryExtException {
+	public boolean isResourceExist(String repoPath) throws HttpException,
+			IOException, RegistryExtException, OAuthSystemException,
+			OAuthProblemException {
+		Map<String, Object> session = ActionContext.getContext().getSession();
+
+		int statusCode = 200;
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		boolean exist = true;
 
@@ -324,7 +424,26 @@ public class RegistryExtAgent {
 
 			httpclient.executeMethod(head);
 
-			int statusCode = head.getStatusLine().getStatusCode();
+			statusCode = head.getStatusLine().getStatusCode();
+
+			/* handle token expiration */
+			if (statusCode == 401) {
+				logger.info(String.format(
+						"Access token %s expired, going to refresh it",
+						accessToken));
+
+				refreshToken(session);
+
+				// use refreshed access token
+				accessToken = (String) session.get(Constants.SESSION_TOKEN);
+				head.addRequestHeader("Authorization", "Bearer " + accessToken);
+
+				// re-send the request
+				httpclient.executeMethod(head);
+
+				statusCode = head.getStatusLine().getStatusCode();
+
+			}
 
 			if (statusCode == 404)
 				exist = false;
@@ -351,10 +470,17 @@ public class RegistryExtAgent {
 	 * @throws RegistryExtException
 	 * @throws HttpException
 	 * @throws IOException
+	 * @throws OAuthProblemException
+	 * @throws OAuthSystemException
 	 */
-	public String postResource(String repoPath, String accessToken,
-			ResourceISType resource) throws RegistryExtException,
-			HttpException, IOException {
+	public String postResource(String repoPath, ResourceISType resource)
+			throws RegistryExtException, HttpException, IOException,
+			OAuthSystemException, OAuthProblemException {
+
+		Map<String, Object> session = ActionContext.getContext().getSession();
+
+		int statusCode = 200;
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		String requestURL = composeURL(FILEOPPREFIX, repoPath);
 
@@ -371,8 +497,28 @@ public class RegistryExtAgent {
 		try {
 
 			httpclient.executeMethod(put);
+			statusCode = put.getStatusLine().getStatusCode();
 
-			if (put.getStatusLine().getStatusCode() != 204) {
+			/* handle token expiration */
+			if (statusCode == 401) {
+				logger.info(String.format(
+						"Access token %s expired, going to refresh it",
+						accessToken));
+
+				refreshToken(session);
+
+				// use refreshed access token
+				accessToken = (String) session.get(Constants.SESSION_TOKEN);
+				put.addRequestHeader("Authorization", "Bearer " + accessToken);
+
+				// re-send the request
+				httpclient.executeMethod(put);
+
+				statusCode = put.getStatusLine().getStatusCode();
+
+			}
+
+			if (statusCode != 204) {
 				throw new RegistryExtException(
 						"Failed in put resource : HTTP error code : "
 								+ put.getStatusLine().getStatusCode());
@@ -386,9 +532,15 @@ public class RegistryExtAgent {
 		return repoPath;
 	}
 
-	public String postMultiResources(String repoPath, String accessToken,
+	public String postMultiResources(String repoPath,
 			List<ResourceFileType> resourceList) throws HttpException,
-			IOException, RegistryExtException {
+			IOException, RegistryExtException, OAuthSystemException,
+			OAuthProblemException {
+
+		Map<String, Object> session = ActionContext.getContext().getSession();
+
+		int statusCode = 200;
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 
 		String requestURL = composeURL(FILEOPPREFIX, repoPath);
 
@@ -415,6 +567,27 @@ public class RegistryExtAgent {
 
 			httpclient.executeMethod(post);
 
+			statusCode = post.getStatusLine().getStatusCode();
+
+			/* handle token expiration */
+			if (statusCode == 401) {
+				logger.info(String.format(
+						"Access token %s expired, going to refresh it",
+						accessToken));
+
+				refreshToken(session);
+
+				// use refreshed access token
+				accessToken = (String) session.get(Constants.SESSION_TOKEN);
+				post.addRequestHeader("Authorization", "Bearer " + accessToken);
+
+				// re-send the request
+				httpclient.executeMethod(post);
+
+				statusCode = post.getStatusLine().getStatusCode();
+
+			}
+
 			if (post.getStatusLine().getStatusCode() != 204) {
 				throw new RegistryExtException(
 						"Failed in post resources : HTTP error code : "
@@ -429,8 +602,14 @@ public class RegistryExtAgent {
 		return repoPath;
 	}
 
-	public GetResourceResponse getResource(String repoPath, String accessToken)
-			throws HttpException, IOException, RegistryExtException {
+	public GetResourceResponse getResource(String repoPath)
+			throws HttpException, IOException, RegistryExtException,
+			OAuthSystemException, OAuthProblemException {
+
+		Map<String, Object> session = ActionContext.getContext().getSession();
+
+		int statusCode = 200;
+		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
 		String requestURL = composeURL(FILEOPPREFIX, repoPath);
 
 		if (logger.isDebugEnabled()) {
@@ -443,7 +622,28 @@ public class RegistryExtAgent {
 
 		httpclient.executeMethod(get);
 
-		if (get.getStatusLine().getStatusCode() != 200) {
+		statusCode = get.getStatusLine().getStatusCode();
+
+		/* handle token expiration */
+		if (statusCode == 401) {
+			logger.info(String
+					.format("Access token %s expired, going to refresh it",
+							accessToken));
+
+			refreshToken(session);
+
+			// use refreshed access token
+			accessToken = (String) session.get(Constants.SESSION_TOKEN);
+			get.addRequestHeader("Authorization", "Bearer " + accessToken);
+
+			// re-send the request
+			httpclient.executeMethod(get);
+
+			statusCode = get.getStatusLine().getStatusCode();
+
+		}
+
+		if (statusCode != 200) {
 			throw new RegistryExtException(
 					"Failed in get resource : HTTP error code : "
 							+ get.getStatusLine().getStatusCode());

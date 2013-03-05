@@ -72,7 +72,8 @@ public class UserSchemaUtil {
 		worksetInfoList.add(secondWorkset);
 
 		edu.indiana.d2i.sloan.schema.internal.JobDescriptionType internalJobDesp = SchemaUtil
-				.user2internal(userJobDesp, "gruan", "jobInternalId",
+				.user2internal(userJobDesp, "fake-access-token",
+						"fake-refresh-token", "gruan", "jobInternalId",
 						"archiveFileName", worksetInfoList);
 
 		System.out.println();

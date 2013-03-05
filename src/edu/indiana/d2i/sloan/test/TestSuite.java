@@ -10,6 +10,8 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.amber.oauth2.common.exception.OAuthProblemException;
+import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.http.client.ClientProtocolException;
 
@@ -24,17 +26,22 @@ import edu.indiana.d2i.sloan.exception.RegistryExtException;
 public class TestSuite {
 	private static String registryEPR = "http://htrc4.pti.indiana.edu:9763/ExtensionAPI-0.3.0-SNAPSHOT/services/";
 	private static boolean isRegistrySelfSigned = false;
+	private static String ACCESS_TOKEN_URL = null;
+	private static String CLIENT_ID = null;
+	private static String CLIENT_SECRET = null;
 
-	public static void testRegistryExtListChildren(String accessToken)
+	public static void testRegistryExtListChildren()
 			throws ClientProtocolException, IllegalStateException,
-			RegistryExtException, IOException, JAXBException {
+			RegistryExtException, IOException, JAXBException,
+			OAuthSystemException, OAuthProblemException {
 
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
-				isRegistrySelfSigned);
+				isRegistrySelfSigned, ACCESS_TOKEN_URL, CLIENT_ID,
+				CLIENT_SECRET);
 
 		String repoPath = "/sloan/worksets?recursive=false";
 
-		ListResourceResponse response = registryAgent.getAllChildren(repoPath, accessToken);
+		ListResourceResponse response = registryAgent.getAllChildren(repoPath);
 
 		if (response.getStatusCode() == 404) {
 			System.out.println(repoPath + " doesn't exist");
@@ -46,24 +53,28 @@ public class TestSuite {
 
 	}
 
-	public static void testRegistryExtDeletion(String accessToken) throws HttpException,
-			IOException, RegistryExtException {
+	public static void testRegistryExtDeletion() throws HttpException,
+			IOException, RegistryExtException, OAuthSystemException,
+			OAuthProblemException {
 
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
-				isRegistrySelfSigned);
+				isRegistrySelfSigned, ACCESS_TOKEN_URL, CLIENT_ID,
+				CLIENT_SECRET);
 
 		String repoPath = "/a/b/workset.zip";
-		registryAgent.deleteResource(repoPath, accessToken);
+		registryAgent.deleteResource(repoPath);
 
 	}
 
-	public static void testRegistryExtResExist(String accessToken) throws HttpException,
-			IOException, RegistryExtException {
+	public static void testRegistryExtResExist() throws HttpException,
+			IOException, RegistryExtException, OAuthSystemException,
+			OAuthProblemException {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
-				isRegistrySelfSigned);
+				isRegistrySelfSigned, ACCESS_TOKEN_URL, CLIENT_ID,
+				CLIENT_SECRET);
 
 		String repoPath = "/a/b/bar.xml";
-		if (registryAgent.isResourceExist(repoPath, accessToken)) {
+		if (registryAgent.isResourceExist(repoPath)) {
 			System.out.println(String.format("Resource %s exists", repoPath));
 		} else {
 			System.out.println(String.format("Resource %s doesn't exist",
@@ -71,7 +82,7 @@ public class TestSuite {
 		}
 
 		repoPath = "/c";
-		if (registryAgent.isResourceExist(repoPath, accessToken)) {
+		if (registryAgent.isResourceExist(repoPath)) {
 			System.out.println(String.format("Resource %s exists", repoPath));
 		} else {
 			System.out.println(String.format("Resource %s doesn't exist",
@@ -79,25 +90,28 @@ public class TestSuite {
 		}
 	}
 
-	public static void testRegistryExtPutRes(String accessToken) throws HttpException,
-			IOException, RegistryExtException {
+	public static void testRegistryExtPutRes() throws HttpException,
+			IOException, RegistryExtException, OAuthSystemException,
+			OAuthProblemException {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
-				isRegistrySelfSigned);
+				isRegistrySelfSigned, ACCESS_TOKEN_URL, CLIENT_ID,
+				CLIENT_SECRET);
 
 		String testFilePath = "D:\\tmp\\jobs.zip";
 		String repoPath = "/a/b/workset.zip";
 
-		String destPath = registryAgent.postResource(repoPath, accessToken,
+		String destPath = registryAgent.postResource(repoPath,
 				new ResourceISType(new FileInputStream(testFilePath),
 						"workset.zip", "application/zip"));
 
 		System.out.println("Resource has been posted to " + destPath);
 	}
 
-	public static void testRegistryExtPostMultiRes(String accessToken) throws IOException,
-			RegistryExtException {
+	public static void testRegistryExtPostMultiRes() throws IOException,
+			RegistryExtException, OAuthSystemException, OAuthProblemException {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
-				isRegistrySelfSigned);
+				isRegistrySelfSigned, ACCESS_TOKEN_URL, CLIENT_ID,
+				CLIENT_SECRET);
 
 		final String localTestFilePath1 = "D:\\tmp\\token.tmp";
 		final String localTestFilePath2 = "D:\\tmp\\niodev.jar";
@@ -114,20 +128,22 @@ public class TestSuite {
 			}
 		};
 
-		String destPath = registryAgent.postMultiResources(repoPath, accessToken,
+		String destPath = registryAgent.postMultiResources(repoPath,
 				resourceList);
 
 		System.out.println("Resource has been posted to " + destPath);
 	}
 
-	public static void testRegistryExtGetRes(String accessToken) throws HttpException,
-			IOException, RegistryExtException {
+	public static void testRegistryExtGetRes() throws HttpException,
+			IOException, RegistryExtException, OAuthSystemException,
+			OAuthProblemException {
 		RegistryExtAgent registryAgent = new RegistryExtAgent(registryEPR,
-				isRegistrySelfSigned);
+				isRegistrySelfSigned, ACCESS_TOKEN_URL, CLIENT_ID,
+				CLIENT_SECRET);
 
 		String repoPath = "/c/token.tmp";
 
-		GetResourceResponse response = registryAgent.getResource(repoPath, accessToken);
+		GetResourceResponse response = registryAgent.getResource(repoPath);
 
 		BufferedReader reader = null;
 
@@ -153,20 +169,20 @@ public class TestSuite {
 	 * @throws RegistryExtException
 	 * @throws IllegalStateException
 	 * @throws ClientProtocolException
+	 * @throws OAuthProblemException
+	 * @throws OAuthSystemException
 	 */
 	public static void main(String[] args) throws ClientProtocolException,
 			IllegalStateException, RegistryExtException, IOException,
-			JAXBException {
+			JAXBException, OAuthSystemException, OAuthProblemException {
 		// TODO Auto-generated method stub
 
-		String accessToken = "883a41b0f4eaee72c71b7a4bd42ef84";
-		
-		testRegistryExtListChildren(accessToken);
-		// testRegistryExtDeletion(accessToken);
-		// testRegistryExtResExist(accessToken);
-		// testRegistryExtPutRes(accessToken);
-		// testRegistryExtPostMultiRes(accessToken);
-		// testRegistryExtGetRes(accessToken);
+		testRegistryExtListChildren();
+		// testRegistryExtDeletion();
+		// testRegistryExtResExist();
+		// testRegistryExtPutRes();
+		// testRegistryExtPostMultiRes();
+		// testRegistryExtGetRes();
 	}
 
 }

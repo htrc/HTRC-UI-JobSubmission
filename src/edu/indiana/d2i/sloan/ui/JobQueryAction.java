@@ -8,10 +8,11 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.amber.oauth2.common.exception.OAuthProblemException;
+import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.SessionAware;
 
-import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 
 import edu.indiana.d2i.registryext.RegistryExtAgent;
@@ -47,9 +48,6 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 			logger.debug(String.format("Job title =%s", jobTitle));
 		}
 
-		Map<String, Object> session = ActionContext.getContext().getSession();
-		String accessToken = (String) session.get(Constants.SESSION_TOKEN);
-
 		try {
 
 			AgentsRepoSingleton agentsRepo = AgentsRepoSingleton.getInstance();
@@ -67,13 +65,12 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 			 */
 			StringBuilder requestURL = new StringBuilder();
 
-			GetResourceResponse response = registryExtAgent.getResource(
-					requestURL
+			GetResourceResponse response = registryExtAgent
+					.getResource(requestURL
 							.append(PortalConfiguration.getRegistryJobPrefix())
 							.append(selectedInsId)
 							.append(RegistryExtAgent.separator)
-							.append(Constants.WSO2_JOB_PROP_FNAME).toString(),
-					accessToken);
+							.append(Constants.WSO2_JOB_PROP_FNAME).toString());
 
 			Properties jobProp = new Properties();
 			jobProp.load(response.getIs());
@@ -90,7 +87,6 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 
 			registryExtAgent.postResource(
 					requestURL.toString(),
-					accessToken,
 					new ResourceISType(new ByteArrayInputStream(os
 							.toByteArray()), Constants.WSO2_JOB_PROP_FNAME,
 							"text/plain"));
@@ -104,6 +100,14 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 			addActionError("Sigiri service exception:" + e.getMessage());
 			return ERROR;
 		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthSystemException e) {
+			logger.error(e.getMessage(), e);
+			addActionError(e.getMessage());
+			return ERROR;
+		} catch (OAuthProblemException e) {
 			logger.error(e.getMessage(), e);
 			addActionError(e.getMessage());
 			return ERROR;
