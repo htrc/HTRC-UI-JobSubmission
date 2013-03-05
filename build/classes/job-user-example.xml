@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:job xmlns:ns2="http://www.globus.org/namespaces/2004/10/gram/job/description">
+	<commandLine>wordcount.jar edu.indiana.d2i.sloan.example.MapReduceWC
+		author:JaneAusten volid.txt wc_result
+	</commandLine>
+
+	<jobType>mapreduce</jobType>
+
+	<fileStageOut>
+		<path>volid.txt</path>
+		<type>headnode</type>
+	</fileStageOut>
+
+	<fileStageOut>
+		<path>wc_result</path>
+		<type>hdfs</type>
+	</fileStageOut>
+
+	<VMCount>2</VMCount>
+	<executionTime>00:30:00</executionTime>
+
+</ns2:job>

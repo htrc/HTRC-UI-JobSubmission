@@ -22,7 +22,7 @@ import edu.indiana.d2i.registryext.schema.Entry;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 
 public class TestSuite {
-	private static String registryEPR = "https://htrc4.pti.indiana.edu:9443/ExtensionAPI-0.2.0/services/";
+	private static String registryEPR = "http://htrc4.pti.indiana.edu:9763/ExtensionAPI-0.3.0-SNAPSHOT/services/";
 	private static boolean isRegistrySelfSigned = false;
 
 	public static void testRegistryExtListChildren(String accessToken)
@@ -159,7 +159,7 @@ public class TestSuite {
 			JAXBException {
 		// TODO Auto-generated method stub
 
-		String accessToken = "3e64c24f4f2a2ecd2b48581bf8d083a5";
+		String accessToken = "883a41b0f4eaee72c71b7a4bd42ef84";
 		
 		testRegistryExtListChildren(accessToken);
 		// testRegistryExtDeletion(accessToken);

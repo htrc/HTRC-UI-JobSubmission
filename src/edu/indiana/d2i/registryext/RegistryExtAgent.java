@@ -235,7 +235,7 @@ public class RegistryExtAgent {
 		HttpClient httpclient = new HttpClient();
 		OptionsMethod options = new OptionsMethod(requestURL);
 
-		options.addRequestHeader("Accept", "application/vnd.htrc-entry+xml");
+		options.addRequestHeader("Accept", "application/xml");
 		options.addRequestHeader("Authorization", "Bearer " + accessToken);
 
 		try {
