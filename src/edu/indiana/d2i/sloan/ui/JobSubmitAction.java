@@ -453,6 +453,13 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 		if (worksetCheckbox != null) {
 			for (String idx : worksetCheckbox) {
+				/*
+				 * This happens only when there is only one workset and user
+				 * doesn't select it when composing the job
+				 */
+				if ("false".equals(idx))
+					continue;
+				
 				selectedWorksets.add(worksetInfoList.get(Integer.valueOf(idx)));
 			}
 		}
