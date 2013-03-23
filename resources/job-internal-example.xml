@@ -14,14 +14,14 @@
 	<fileStageOut>
 		<srcPath>volid.txt</srcPath>
 		<srcType>headnode</srcType>
-		<destPath>/htrc/tmpoutput/gruan/jobid</destPath>
+		<destPath>/sloan/jobs/jobid</destPath>
 		<destType>wso2_registry</destType>
 	</fileStageOut>
 
 	<fileStageOut>
 		<srcPath>wc_result</srcPath>
 		<srcType>hdfs</srcType>
-		<destPath>/htrc/tmpoutput/gruan/jobid</destPath>
+		<destPath>/sloan/jobs/jobid</destPath>
 		<destType>wso2_registry</destType>
 	</fileStageOut>
 
@@ -29,30 +29,30 @@
 	<executionTime>00:30:00</executionTime>
 
 	<tokenPath>
-		<srcPath>/htrc/repo/gruan/token.tmp</srcPath>
+		<srcPath>access_token refresh_token</srcPath>
 		<srcType>wso2_registry</srcType>
 		<destPath></destPath>
 		<destType>headnode</destType>
 	</tokenPath>
 
 	<archive>
-		<srcPath>/htrc/repo/gruan/jobid/archive/wcjob.zip</srcPath>
+		<srcPath>/sloan/jobs/jobid/archive/wcjob.zip</srcPath>
 		<srcType>wso2_registry</srcType>
-		<destPath></destPath>
+		<destPath>wcjob.zip</destPath>
 		<destType>headnode</destType>
 	</archive>
 
 	<worksets>
 		<workset>
-			<srcPath>/htrc/workset/gruan/worksetid1/workset1.zip</srcPath>
+			<srcPath>/sloan/worksets/worksetid1/workset1.zip</srcPath>
 			<srcType>wso2_registry</srcType>
-			<destPath></destPath>
+			<destPath>workset1.zip</destPath>
 			<destType>headnode</destType>
 		</workset>
 		<workset>
-			<srcPath>/htrc/workset/gruan/worksetid2/workset2.zip</srcPath>
+			<srcPath>/sloan/worksets/worksetid2/workset2.zip</srcPath>
 			<srcType>wso2_registry</srcType>
-			<destPath></destPath>
+			<destPath>workset2.zip</destPath>
 			<destType>headnode</destType>
 		</workset>
 	</worksets>

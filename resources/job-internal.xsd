@@ -43,9 +43,10 @@
 				directory structure of registry. Sigiri daemon's code can keep stable even 
 				if the internal structure of registry changes -->
 
-			<!-- granted token -->
+			<!-- access token & refresh token -->
 			<!-- this is required since sigiri daemon may need to present this token 
-				to registry APIs when retrieving stuff from registry -->
+				to registry APIs when retrieving stuff from registry, the value of this field 
+				is access token and refresh token, separated by a white space -->
 			<xsd:element name="tokenPath" type="tns:TransferRequestType"
 				minOccurs="1" maxOccurs="1" />
 
