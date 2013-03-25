@@ -26,6 +26,12 @@
 
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * null job description exception
+ * 
+ * @author Guangchen
+ * 
+ */
 public class NullJobDespException extends Exception {
 
 	private static final long serialVersionUID = 1L;

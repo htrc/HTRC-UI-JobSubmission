@@ -26,6 +26,12 @@
 
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * null executable exception
+ * 
+ * @author Guangchen
+ * 
+ */
 @SuppressWarnings("serial")
 public class NullExecutableException extends Exception {
 	public NullExecutableException(String message) {

@@ -26,6 +26,12 @@
 
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * job archive file doesn't exist exception
+ * 
+ * @author Guangchen
+ * 
+ */
 @SuppressWarnings("serial")
 public class JobExeNotExistException extends Exception {
 	public JobExeNotExistException(String message) {

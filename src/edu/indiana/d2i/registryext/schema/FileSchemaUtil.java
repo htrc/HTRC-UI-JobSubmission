@@ -27,8 +27,6 @@
 package edu.indiana.d2i.registryext.schema;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,7 +39,23 @@ import javax.xml.bind.Unmarshaller;
 
 import edu.indiana.sloan.schema.XMLValidationEventHandler;
 
+/**
+ * Utility class which is used to validate and read XML file returned by
+ * registry extension
+ * 
+ * @author Guangchen
+ * 
+ */
 public class FileSchemaUtil {
+	/**
+	 * read XML file that represents an entry in registry from an input stream
+	 * 
+	 * @param is
+	 *            input stream from which XML file can be read
+	 * @return class represents a registry entry, see {#link Entry}
+	 * @throws JAXBException
+	 * @throws IOException
+	 */
 	@SuppressWarnings("unchecked")
 	public static Entry readConfigXML(InputStream is) throws JAXBException,
 			IOException {
@@ -58,6 +72,13 @@ public class FileSchemaUtil {
 		return entry;
 	}
 
+	/**
+	 * 
+	 * @param entry
+	 *            class represents a registry entry, see {#link Entry}
+	 * @return a string form of the XML file that represents the entry
+	 * @throws JAXBException
+	 */
 	public static String toXMLString(Entry entry) throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext
 				.newInstance("edu.indiana.d2i.registryext.schema");
@@ -69,15 +90,5 @@ public class FileSchemaUtil {
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		marshaller.marshal(createEntryType, out);
 		return out.toString();
-	}
-
-	public static void main(String[] args) throws FileNotFoundException,
-			JAXBException, IOException {
-		String filePath = "D:\\workspace\\java_workspace\\HTRC-UI-JobSubmission\\resources\\file-example.xml";
-
-		Entry entry = readConfigXML(new FileInputStream(filePath));
-
-		String xmlStr = toXMLString(entry);
-		System.out.println(xmlStr);
 	}
 }

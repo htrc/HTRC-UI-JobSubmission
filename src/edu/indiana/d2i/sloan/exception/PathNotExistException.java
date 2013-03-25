@@ -26,6 +26,12 @@
 
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * path doesn't exist exception
+ * 
+ * @author Guangchen
+ * 
+ */
 @SuppressWarnings("serial")
 public class PathNotExistException extends Exception {
 	public PathNotExistException(String message) {

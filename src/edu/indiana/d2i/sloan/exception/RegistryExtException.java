@@ -26,6 +26,12 @@
 
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * Base class represents exception thrown by registry extension agent
+ * 
+ * @author Guangchen
+ * 
+ */
 public class RegistryExtException extends Exception {
 
 	private static final long serialVersionUID = 1L;

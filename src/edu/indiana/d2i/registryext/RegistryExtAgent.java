@@ -74,6 +74,12 @@ import edu.indiana.d2i.registryext.schema.FileSchemaUtil;
 import edu.indiana.d2i.sloan.Constants;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 
+/**
+ * Agent which encapsulates methods used to access registry extension
+ * 
+ * @author Guangchen
+ * 
+ */
 public class RegistryExtAgent {
 	private static final Logger logger = Logger
 			.getLogger(RegistryExtAgent.class);
@@ -173,6 +179,13 @@ public class RegistryExtAgent {
 
 	}
 
+	/**
+	 * Class represents returned list when {@link #getAllChildren(String)}
+	 * method is called
+	 * 
+	 * @author Guangchen
+	 * 
+	 */
 	public static class ListResourceResponse {
 		private Entries entries;
 		private int statusCode;
@@ -192,6 +205,13 @@ public class RegistryExtAgent {
 
 	}
 
+	/**
+	 * Class represents response of get request method
+	 * {@link #getResource(String)} method is called
+	 * 
+	 * @author Guangchen
+	 * 
+	 */
 	public static class GetResourceResponse {
 		private InputStream is;
 		private HttpMethodBase method;
@@ -280,6 +300,7 @@ public class RegistryExtAgent {
 	 * Only return file names (no directory)
 	 * 
 	 * @param repoPath
+	 *            path in registry
 	 * @return
 	 * @throws RegistryExtException
 	 * @throws ClientProtocolException
@@ -368,6 +389,17 @@ public class RegistryExtAgent {
 
 	}
 
+	/**
+	 * delete a single resource
+	 * 
+	 * @param repoPath
+	 *            path in registry
+	 * @throws HttpException
+	 * @throws IOException
+	 * @throws RegistryExtException
+	 * @throws OAuthSystemException
+	 * @throws OAuthProblemException
+	 */
 	public void deleteResource(String repoPath) throws HttpException,
 			IOException, RegistryExtException, OAuthSystemException,
 			OAuthProblemException {
@@ -425,6 +457,18 @@ public class RegistryExtAgent {
 
 	}
 
+	/**
+	 * check whether a resource exists
+	 * 
+	 * @param repoPath
+	 *            path in registry
+	 * @return
+	 * @throws HttpException
+	 * @throws IOException
+	 * @throws RegistryExtException
+	 * @throws OAuthSystemException
+	 * @throws OAuthProblemException
+	 */
 	public boolean isResourceExist(String repoPath) throws HttpException,
 			IOException, RegistryExtException, OAuthSystemException,
 			OAuthProblemException {
@@ -486,17 +530,18 @@ public class RegistryExtAgent {
 	}
 
 	/**
-	 * Post single resource
+	 * post a resource
 	 * 
 	 * @param repoPath
-	 * @param is
-	 * @param mediaType
+	 *            path in registry
+	 * @param resource
+	 *            resource to be posted, given in as input stream
 	 * @return
 	 * @throws RegistryExtException
 	 * @throws HttpException
 	 * @throws IOException
-	 * @throws OAuthProblemException
 	 * @throws OAuthSystemException
+	 * @throws OAuthProblemException
 	 */
 	public String postResource(String repoPath, ResourceISType resource)
 			throws RegistryExtException, HttpException, IOException,
@@ -557,6 +602,21 @@ public class RegistryExtAgent {
 		return repoPath;
 	}
 
+	/**
+	 * post multiple resources through a single call, all resources are posted
+	 * under 'repoPath'
+	 * 
+	 * @param repoPath
+	 *            path in registry where resources should be posted
+	 * @param resourceList
+	 *            list of resources to be posted
+	 * @return
+	 * @throws HttpException
+	 * @throws IOException
+	 * @throws RegistryExtException
+	 * @throws OAuthSystemException
+	 * @throws OAuthProblemException
+	 */
 	public String postMultiResources(String repoPath,
 			List<ResourceFileType> resourceList) throws HttpException,
 			IOException, RegistryExtException, OAuthSystemException,
@@ -627,6 +687,18 @@ public class RegistryExtAgent {
 		return repoPath;
 	}
 
+	/**
+	 * retrieve a resource
+	 * 
+	 * @param repoPath
+	 *            path in registry
+	 * @return
+	 * @throws HttpException
+	 * @throws IOException
+	 * @throws RegistryExtException
+	 * @throws OAuthSystemException
+	 * @throws OAuthProblemException
+	 */
 	public GetResourceResponse getResource(String repoPath)
 			throws HttpException, IOException, RegistryExtException,
 			OAuthSystemException, OAuthProblemException {
@@ -678,6 +750,12 @@ public class RegistryExtAgent {
 
 	}
 
+	/**
+	 * close connection
+	 * 
+	 * @param method
+	 *            http method type
+	 */
 	public void closeConnection(HttpMethodBase method) {
 		if (method != null)
 			method.releaseConnection();

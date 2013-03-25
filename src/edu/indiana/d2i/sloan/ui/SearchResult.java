@@ -50,6 +50,12 @@ import edu.indiana.d2i.sloan.Constants;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 import edu.indiana.d2i.wso2.JobProperty;
 
+/**
+ * Search result action which displays job search results
+ * 
+ * @author Guangchen
+ * 
+ */
 public class SearchResult extends ActionSupport implements SessionAware,
 		LoginRequired, SessionTimeoutRequired {
 	private static final long serialVersionUID = 1L;
@@ -78,6 +84,12 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 	private String jobTitle;
 
+	/**
+	 * Class that represents radio button
+	 * 
+	 * @author Guangchen
+	 * 
+	 */
 	public static class RadioItem {
 		private String key;
 		private String label;
@@ -105,6 +117,12 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 	}
 
+	/**
+	 * Class represents job meta info snapshot
+	 * 
+	 * @author Guangchen
+	 * 
+	 */
 	public static class JobMetaInfo implements Comparable<JobMetaInfo> {
 		private String createdTimeStr;
 		private String owner;
@@ -235,6 +253,11 @@ public class SearchResult extends ActionSupport implements SessionAware,
 		return SUCCESS;
 	}
 
+	/**
+	 * show job search results
+	 * 
+	 * @return
+	 */
 	public String showSearchRes() {
 
 		if (logger.isDebugEnabled()) {
@@ -373,6 +396,8 @@ public class SearchResult extends ActionSupport implements SessionAware,
 
 		return SUCCESS;
 	}
+
+	// getters and setters
 
 	public String getSelectedJobTitle() {
 		return selectedJobTitle;

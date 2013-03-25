@@ -31,6 +31,12 @@ import java.util.Properties;
 
 import edu.indiana.d2i.sloan.Constants;
 
+/**
+ * Class used to retrieve properties from configuration file
+ * 
+ * @author Guangchen
+ * 
+ */
 public class PortalConfiguration {
 
 	// oauth2 properties

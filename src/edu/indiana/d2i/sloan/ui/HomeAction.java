@@ -27,6 +27,12 @@ package edu.indiana.d2i.sloan.ui;
 
 import com.opensymphony.xwork2.ActionSupport;
 
+/**
+ * Home web page
+ * 
+ * @author Guangchen
+ * 
+ */
 public class HomeAction extends ActionSupport {
 	private static final long serialVersionUID = 1L;
 

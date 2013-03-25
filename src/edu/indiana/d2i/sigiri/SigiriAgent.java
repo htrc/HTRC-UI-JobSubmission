@@ -40,6 +40,12 @@ import edu.indiana.extreme.sigiri.SigiriServiceStub.JobStatus;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobSubmissionParameters;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.XMLContent;
 
+/**
+ * Agent which encapsulates methods used to access Sigiri web services
+ * 
+ * @author Guangchen
+ * 
+ */
 public class SigiriAgent {
 	private final SigiriServiceStub stub;
 
@@ -47,6 +53,15 @@ public class SigiriAgent {
 		stub = new SigiriServiceStub(epr);
 	}
 
+	/**
+	 * submit job to Sigiri web services
+	 * 
+	 * @param internalJobDescriptionXMLStr
+	 *            internal job description XML file as string
+	 * @return job status
+	 * @throws XMLStreamException
+	 * @throws RemoteException
+	 */
 	public JobStatus submitJob(String internalJobDescriptionXMLStr)
 			throws XMLStreamException, RemoteException {
 		JobSubmissionParameters parameters = new JobSubmissionParameters();
@@ -57,10 +72,18 @@ public class SigiriAgent {
 		xmlContent.setExtraElement(omelement);
 		parameters.setJobDescriptionXML(xmlContent);
 		parameters.setCallbackURL("www.google.com");
-		
+
 		return stub.submitJob(parameters);
 	}
 
+	/**
+	 * query job status by job id
+	 * 
+	 * @param jobId
+	 *            Sigiri job id
+	 * @return job status
+	 * @throws RemoteException
+	 */
 	public JobStatus queryJobStatus(JobId jobId) throws RemoteException {
 		return stub.checkStatus(jobId);
 	}

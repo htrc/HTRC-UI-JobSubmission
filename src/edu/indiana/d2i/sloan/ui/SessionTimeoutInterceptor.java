@@ -39,6 +39,12 @@ import com.opensymphony.xwork2.interceptor.AbstractInterceptor;
 
 import edu.indiana.d2i.sloan.Constants;
 
+/**
+ * Class which handles session timeout.
+ * 
+ * @author Guangchen
+ * 
+ */
 public class SessionTimeoutInterceptor extends AbstractInterceptor {
 	private static final long serialVersionUID = 1L;
 	private static final Log logger = LogFactory

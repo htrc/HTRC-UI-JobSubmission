@@ -39,6 +39,12 @@ import com.opensymphony.xwork2.ActionSupport;
 
 import edu.indiana.d2i.sloan.Constants;
 
+/**
+ * Logout action
+ * 
+ * @author Guangchen
+ * 
+ */
 public class LogoutAction extends ActionSupport implements SessionAware,
 		LoginRequired, ServletResponseAware {
 	private static final long serialVersionUID = 1L;

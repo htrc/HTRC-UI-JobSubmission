@@ -25,6 +25,13 @@
  */
 package edu.indiana.d2i.sloan.ui;
 
+/**
+ * Interface indicating that session time out is check when performing a certain
+ * action
+ * 
+ * @author Guangchen
+ * 
+ */
 public interface SessionTimeoutRequired {
 
 }

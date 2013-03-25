@@ -25,6 +25,12 @@
  */
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * job already exists exception
+ * 
+ * @author Guangchen
+ * 
+ */
 @SuppressWarnings("serial")
 public class JobAlreadyExistException extends Exception {
 	public JobAlreadyExistException(String message) {

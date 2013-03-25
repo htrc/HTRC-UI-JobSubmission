@@ -51,6 +51,12 @@ import edu.indiana.d2i.sloan.Constants;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 import edu.indiana.d2i.wso2.JobProperty;
 
+/**
+ * Job search action
+ * 
+ * @author Guangchen
+ * 
+ */
 @SuppressWarnings("serial")
 public class JobSearchAction extends ActionSupport implements SessionAware,
 		LoginRequired, SessionTimeoutRequired {
@@ -69,6 +75,11 @@ public class JobSearchAction extends ActionSupport implements SessionAware,
 		return SUCCESS;
 	}
 
+	/**
+	 * prepare job information snapshot
+	 * 
+	 * @return
+	 */
 	public String prepareJobInfo() {
 		/* error message passed from SearchResultAction (showSearchRes() method) */
 		if (errMsg != null && !"".equals(errMsg)) {
@@ -151,6 +162,8 @@ public class JobSearchAction extends ActionSupport implements SessionAware,
 
 		return SUCCESS;
 	}
+
+	// getters and setters
 
 	public Set<String> getJobTitles() {
 		return jobTitles;

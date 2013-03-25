@@ -69,6 +69,12 @@ import edu.indiana.d2i.wso2.JobProperty;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobStatus;
 import edu.indiana.sloan.schema.SchemaUtil;
 
+/**
+ * Job submission action
+ * 
+ * @author Guangchen
+ * 
+ */
 public class JobSubmitAction extends ActionSupport implements SessionAware,
 		LoginRequired, SessionTimeoutRequired {
 
@@ -97,6 +103,12 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 	private String danglingJobId = null;
 
+	/**
+	 * Class represents workset meta info
+	 * 
+	 * @author Guangchen
+	 * 
+	 */
 	public static class WorksetMetaInfo {
 		private String UUID;
 		private String fileName;
@@ -156,19 +168,15 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 
 	}
 
+	/**
+	 * Do backend validation. Currently all basic validations are moved to front
+	 * end (e.g., javascript), Other complex validations can be put in this
+	 * method as backend validation
+	 * 
+	 * @return
+	 */
 	public boolean isValidForm() {
-		/**
-		 * Currently all basic validations are moved to front end (e.g.,
-		 * javascript), Other complex validations can be put in this method as
-		 * backend validation
-		 */
-
-		// if (!ArchiveFileExt.isValidExt(getJobArchiveFileName())) {
-		// errMsg = "Job archive file: " + ArchiveFileExt.MSG;
-		// logger.error(errMsg);
-		// return false;
-		// }
-
+		/* add backend validation here if needed */
 		return true;
 	}
 
@@ -285,6 +293,9 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		return loadWorksetInfo();
 	}
 
+	/**
+	 * upload job to registry and submit it to Sigiri web services
+	 */
 	public String execute() {
 
 		if (!isValidForm())
@@ -407,6 +418,18 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		}
 	}
 
+	/**
+	 * upload job
+	 * 
+	 * @throws RemoteException
+	 * @throws JAXBException
+	 * @throws NullSigiriJobIdException
+	 * @throws XMLStreamException
+	 * @throws RegistryExtException
+	 * @throws IOException
+	 * @throws OAuthSystemException
+	 * @throws OAuthProblemException
+	 */
 	private void uploadJob() throws RemoteException, JAXBException,
 			NullSigiriJobIdException, XMLStreamException, RegistryExtException,
 			IOException, OAuthSystemException, OAuthProblemException {
@@ -484,7 +507,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 				 */
 				if ("false".equals(idx))
 					continue;
-				
+
 				selectedWorksets.add(worksetInfoList.get(Integer.valueOf(idx)));
 			}
 		}
@@ -593,6 +616,8 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		 */
 		danglingJobId = null;
 	}
+
+	// getters and setters
 
 	public String getSelectedJob() {
 		return selectedJob;

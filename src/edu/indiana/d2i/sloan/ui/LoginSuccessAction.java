@@ -62,6 +62,13 @@ import com.opensymphony.xwork2.ActionSupport;
 
 import edu.indiana.d2i.sloan.Constants;
 
+/**
+ * Login success action. Retrieve access token, refresh token and user info from
+ * WS IS when redirect back to job submission interface
+ * 
+ * @author Guangchen
+ * 
+ */
 public class LoginSuccessAction extends ActionSupport implements
 		ServletRequestAware, ServletResponseAware, SessionAware {
 	private static final long serialVersionUID = 1L;
@@ -127,6 +134,9 @@ public class LoginSuccessAction extends ActionSupport implements
 		}
 	}
 
+	/**
+	 * retrieve access token, refresh token and user info from WS IS
+	 */
 	@Override
 	public String execute() {
 		String token = (String) ActionContext.getContext().getSession()

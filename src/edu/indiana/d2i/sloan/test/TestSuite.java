@@ -49,6 +49,12 @@ import edu.indiana.d2i.registryext.RegistryExtAgent.ResourceISType;
 import edu.indiana.d2i.registryext.schema.Entry;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 
+/**
+ * Test class
+ * 
+ * @author Guangchen
+ * 
+ */
 public class TestSuite {
 	private static String registryEPR = "http://htrc4.pti.indiana.edu:9763/ExtensionAPI-0.3.0-SNAPSHOT/services/";
 	private static boolean isRegistrySelfSigned = false;

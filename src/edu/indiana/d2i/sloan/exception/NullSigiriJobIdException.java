@@ -26,6 +26,13 @@
 
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * null sigiri job id returned by Sigiri web services, caused by exception in
+ * Sigiri side
+ * 
+ * @author Guangchen
+ * 
+ */
 @SuppressWarnings("serial")
 public class NullSigiriJobIdException extends Exception {
 	public NullSigiriJobIdException(String message) {

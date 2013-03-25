@@ -43,6 +43,13 @@ import org.wso2.carbon.registry.ws.client.registry.WSRegistryServiceClient;
 
 import edu.indiana.d2i.sloan.exception.PathNotExistException;
 
+/**
+ * Class used to access old registry APIs, deprecated.
+ * 
+ * @deprecated
+ * @author Guangchen
+ * 
+ */
 public class WSO2Agent {
 	private static final Logger logger = Logger.getLogger(WSO2Agent.class);
 	private String remoteRegistryUrl;

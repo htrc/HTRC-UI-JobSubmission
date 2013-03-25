@@ -26,6 +26,12 @@
 
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * job description file doesn't exist exception
+ * 
+ * @author Guangchen
+ * 
+ */
 @SuppressWarnings("serial")
 public class JobDespNotExistException extends Exception {
 	public JobDespNotExistException(String message) {

@@ -29,6 +29,12 @@ package edu.indiana.d2i.wso2;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class represents supported job archive file types
+ * 
+ * @author Guangchen
+ * 
+ */
 public class ArchiveFileExt {
 	public static final String MSG = "Only support .zip, .tar file";
 	public static final List<String> archiveFileExt = new ArrayList<String>() {
@@ -44,6 +50,8 @@ public class ArchiveFileExt {
 	/**
 	 * check whether the given file name has valid file extension
 	 * 
+	 * @param fileName
+	 *            filename to be checked
 	 * @return
 	 */
 	public static boolean isValidExt(String fileName) {

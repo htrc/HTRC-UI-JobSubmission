@@ -31,6 +31,13 @@ import edu.indiana.d2i.registryext.RegistryExtAgent;
 import edu.indiana.d2i.sigiri.SigiriAgent;
 import edu.indiana.d2i.sloan.ui.PortalConfiguration;
 
+/**
+ * Singleton class used to create {@link SigiriAgent} and
+ * {@link RegistryExtAgent}.
+ * 
+ * @author Guangchen
+ * 
+ */
 public class AgentsRepoSingleton {
 	private static AgentsRepoSingleton instance = null;
 	private static SigiriAgent sigiriAgent = null;
@@ -50,6 +57,12 @@ public class AgentsRepoSingleton {
 				PortalConfiguration.getOAuth2ClientSecrete());
 	}
 
+	/**
+	 * get singleton instance
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
 	public static synchronized AgentsRepoSingleton getInstance()
 			throws IOException {
 		if (instance == null) {
@@ -58,10 +71,20 @@ public class AgentsRepoSingleton {
 		return instance;
 	}
 
+	/**
+	 * get Sigiri agent singleton instance
+	 * 
+	 * @return Sigiri agent
+	 */
 	public SigiriAgent getSigiriAgent() {
 		return sigiriAgent;
 	}
 
+	/**
+	 * get registry extension singleton instance
+	 * 
+	 * @return registry extension agent
+	 */
 	public RegistryExtAgent getRegistryExtAgent() {
 		return registryExtAgent;
 	}

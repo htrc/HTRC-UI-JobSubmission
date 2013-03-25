@@ -36,6 +36,12 @@ import com.opensymphony.xwork2.ActionSupport;
 
 import edu.indiana.d2i.sloan.Constants;
 
+/**
+ * Login action. Redirect user to WS Identity Server (IS) for authentication
+ * 
+ * @author Guangchen
+ * 
+ */
 public class LoginAction extends ActionSupport implements ServletRequestAware {
 	private static final long serialVersionUID = 1L;
 
@@ -45,6 +51,11 @@ public class LoginAction extends ActionSupport implements ServletRequestAware {
 
 	private String redirectURL = null;
 
+	/**
+	 * get server context
+	 * 
+	 * @return
+	 */
 	private String getServerContext() {
 		HttpServletRequest request = getServletRequest();
 		final StringBuilder serverPath = new StringBuilder();
@@ -57,6 +68,9 @@ public class LoginAction extends ActionSupport implements ServletRequestAware {
 		return serverPath.toString();
 	}
 
+	/**
+	 * Redirect to WS IS
+	 */
 	public String execute() throws Exception {
 		String webAppContext = getServerContext();
 		String redirectUrl = webAppContext + "/LoginSuccessAction";

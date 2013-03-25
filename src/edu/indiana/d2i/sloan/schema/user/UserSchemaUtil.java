@@ -27,13 +27,9 @@
 package edu.indiana.d2i.sloan.schema.user;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -41,13 +37,27 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import edu.indiana.d2i.sloan.schema.internal.InternalSchemaUtil;
-import edu.indiana.d2i.sloan.ui.JobSubmitAction.WorksetMetaInfo;
-import edu.indiana.sloan.schema.SchemaUtil;
 import edu.indiana.sloan.schema.XMLValidationEventHandler;
 
+/**
+ * Utility class for user job description XML file, provisions methods to do
+ * transformation between XML file and corresponding java class, and validation.
+ * 
+ * @author Guangchen
+ * 
+ */
 public class UserSchemaUtil {
 
+	/**
+	 * read user job description XML file from an input stream and transform it
+	 * to corresponding java class
+	 * 
+	 * @param is
+	 *            input stream where XML file can be read
+	 * @return java class represents job description XML file
+	 * @throws JAXBException
+	 * @throws IOException
+	 */
 	@SuppressWarnings("unchecked")
 	public static JobDescriptionType readConfigXML(InputStream is)
 			throws JAXBException, IOException {
@@ -64,6 +74,15 @@ public class UserSchemaUtil {
 		return jobDescriptionType;
 	}
 
+	/**
+	 * transform user job description java class to string form of corresponding
+	 * XML file
+	 * 
+	 * @param jobDescriptionType
+	 *            user job description
+	 * @return string form of corresponding XML file
+	 * @throws JAXBException
+	 */
 	public static String toXMLString(JobDescriptionType jobDescriptionType)
 			throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext
@@ -76,34 +95,5 @@ public class UserSchemaUtil {
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		marshaller.marshal(createJobDescriptionType, out);
 		return out.toString();
-	}
-
-	public static void main(String[] args) throws JAXBException,
-			FileNotFoundException, IOException {
-		String filePath = "D:\\workspace\\java_workspace\\HTRC-UI-JobSubmission\\resources\\job-user-example.xml";
-
-		JobDescriptionType userJobDesp = readConfigXML(new FileInputStream(
-				filePath));
-
-		String xmlStr = toXMLString(userJobDesp);
-		System.out.println(xmlStr);
-
-		List<WorksetMetaInfo> worksetInfoList = new ArrayList<WorksetMetaInfo>();
-		WorksetMetaInfo firstWorkset = new WorksetMetaInfo("UUID1",
-				"FileName1", "Title1", "Desp1");
-		WorksetMetaInfo secondWorkset = new WorksetMetaInfo("UUID2",
-				"FileName2", "Title2", "Desp2");
-
-		worksetInfoList.add(firstWorkset);
-		worksetInfoList.add(secondWorkset);
-
-		edu.indiana.d2i.sloan.schema.internal.JobDescriptionType internalJobDesp = SchemaUtil
-				.user2internal(userJobDesp, "fake-access-token",
-						"fake-refresh-token", "gruan", "jobInternalId",
-						"archiveFileName", worksetInfoList);
-
-		System.out.println();
-		xmlStr = InternalSchemaUtil.toXMLString(internalJobDesp);
-		System.out.println(xmlStr);
 	}
 }

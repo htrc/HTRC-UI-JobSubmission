@@ -26,6 +26,12 @@
 
 package edu.indiana.d2i.sloan.exception;
 
+/**
+ * Enumeration of error types can be encountered in job submission process
+ * 
+ * @author Guangchen
+ * 
+ */
 public enum ErrorType {
 	NOERROR, UNKNOWN, PATH_NOT_EXIST, XML_PARSE_ERROR, JOB_DESP_SCHEMA_INVALID, JOB_ALREADY_EXIST, JOB_NAME_INVALID, SIGIRI_SERVICE_UNREACHABLE, REGISTRY_SERVICE_UNREACHABLE, OAUTH2_SERVICE_UNREACHABLE, NULL_EXECUTABLE, JOB_DESP_NOT_EXIST, JOB_EXE_NOT_EXIST, NULL_SIGIRI_JOB_ID;
 }

@@ -56,6 +56,13 @@ import edu.indiana.d2i.sloan.Constants;
 import edu.indiana.d2i.sloan.exception.RegistryExtException;
 import edu.indiana.d2i.sloan.ui.JobSubmitAction.WorksetMetaInfo;
 
+/**
+ * Action that allows user to manage workset. Workset addition, modification and
+ * deletion are supported.
+ * 
+ * @author Guangchen
+ * 
+ */
 public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 		LoginRequired, SessionTimeoutRequired {
 
@@ -186,6 +193,10 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 		return loadWorksetInfo();
 	}
 
+	/**
+	 * update workset
+	 * @return
+	 */
 	public String updateWorkSet() {
 		Map<String, Object> session = ActionContext.getContext().getSession();
 		String username = (String) session.get(Constants.SESSION_USERNAME);

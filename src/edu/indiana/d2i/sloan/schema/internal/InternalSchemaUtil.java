@@ -26,8 +26,6 @@
 package edu.indiana.d2i.sloan.schema.internal;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,8 +38,25 @@ import javax.xml.bind.Unmarshaller;
 
 import edu.indiana.sloan.schema.XMLValidationEventHandler;
 
+/**
+ * Utility class for internal job description XML file, provisions methods to do
+ * transformation between XML file and corresponding java class, and validation.
+ * 
+ * @author Guangchen
+ * 
+ */
 public class InternalSchemaUtil {
 
+	/**
+	 * read internal job description XML file from an input stream and transform
+	 * it to corresponding java class
+	 * 
+	 * @param is
+	 *            input stream where XML file can be read
+	 * @return java class represents job description XML file
+	 * @throws JAXBException
+	 * @throws IOException
+	 */
 	@SuppressWarnings("unchecked")
 	public static JobDescriptionType readConfigXML(InputStream is)
 			throws JAXBException, IOException {
@@ -58,6 +73,15 @@ public class InternalSchemaUtil {
 		return jobDescriptionType;
 	}
 
+	/**
+	 * transform internal job description java class to string form of
+	 * corresponding XML file
+	 * 
+	 * @param jobDescriptionType
+	 *            internal job description
+	 * @return string form of corresponding XML file
+	 * @throws JAXBException
+	 */
 	public static String toXMLString(JobDescriptionType jobDescriptionType)
 			throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext
@@ -70,16 +94,5 @@ public class InternalSchemaUtil {
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		marshaller.marshal(createJobDescriptionType, out);
 		return out.toString();
-	}
-
-	public static void main(String[] args) throws JAXBException,
-			FileNotFoundException, IOException {
-		String filePath = "D:\\workspace\\java_workspace\\HTRC-UI-JobSubmission\\resources\\job-internal-example.xml";
-
-		JobDescriptionType userJobDesp = readConfigXML(new FileInputStream(
-				filePath));
-
-		String xmlStr = toXMLString(userJobDesp);
-		System.out.println(xmlStr);
 	}
 }

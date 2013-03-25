@@ -51,6 +51,12 @@ import edu.indiana.d2i.wso2.JobProperty;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobId;
 import edu.indiana.extreme.sigiri.SigiriServiceStub.JobStatus;
 
+/**
+ * Job query action
+ * 
+ * @author Guangchen
+ * 
+ */
 public class JobQueryAction extends ActionSupport implements SessionAware,
 		LoginRequired, SessionTimeoutRequired {
 
@@ -66,6 +72,9 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 	/* registry job id */
 	private String selectedInsId;
 
+	/**
+	 * query job status
+	 */
 	public String execute() {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("Registry job id=%s", selectedInsId));
@@ -140,6 +149,8 @@ public class JobQueryAction extends ActionSupport implements SessionAware,
 
 		return SUCCESS;
 	}
+
+	// getters and setters
 
 	public String getSigiriJobStatus() {
 		return sigiriJobStatus;

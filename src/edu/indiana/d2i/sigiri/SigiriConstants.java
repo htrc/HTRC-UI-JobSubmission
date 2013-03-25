@@ -25,6 +25,12 @@
  */
 package edu.indiana.d2i.sigiri;
 
+/**
+ * Class which encapsulates property names used by Sigiri
+ * 
+ * @author Guangchen
+ * 
+ */
 public class SigiriConstants {
 	public static final String EXECUTABLE_PATH = "executable.path";
 	public static final String PROPERTY_PATH = "property.path";

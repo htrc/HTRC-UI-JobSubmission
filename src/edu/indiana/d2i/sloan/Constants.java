@@ -25,6 +25,13 @@
  */
 package edu.indiana.d2i.sloan;
 
+/**
+ * Class represents property names used in configuration file, including OAuth2,
+ * WSO2 Registry and Sigiri related properties.
+ * 
+ * @author Guangchen
+ * 
+ */
 public class Constants {
 	// OAuth2 related properties
 	public static final String PN_OAUTH2_AUTH_EPR = "oauth2.auth.endpoint";

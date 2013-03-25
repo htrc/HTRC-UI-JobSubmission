@@ -39,17 +39,29 @@ import edu.indiana.d2i.sloan.schema.internal.WorkSets;
 import edu.indiana.d2i.sloan.ui.PortalConfiguration;
 import edu.indiana.d2i.sloan.ui.JobSubmitAction.WorksetMetaInfo;
 
+/**
+ * Utility class which conducts transformation between user job description and
+ * internal job description
+ * 
+ * @author Guangchen
+ * 
+ */
 public class SchemaUtil {
 
 	/**
 	 * transform user job description to internal job description
 	 * 
 	 * @param userJobDesp
+	 *            user job description
 	 * @param username
+	 *            local user name
 	 * @param jobInternalId
+	 *            job internal id
 	 * @param archiveFileName
+	 *            job archive file name
 	 * @param worksetInfoList
-	 * @return
+	 *            list of workset info
+	 * @return internal job description
 	 * @throws IOException
 	 */
 	public static JobDescriptionType user2internal(

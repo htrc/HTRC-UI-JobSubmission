@@ -33,9 +33,18 @@ import com.opensymphony.xwork2.interceptor.AbstractInterceptor;
 
 import edu.indiana.d2i.sloan.Constants;
 
+/**
+ * Login interceptor. Require user to re-login if session has expired.
+ * 
+ * @author Guangchen
+ * 
+ */
 public class LoginInterceptor extends AbstractInterceptor {
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * check whether re-login is required
+	 */
 	@Override
 	public String intercept(final ActionInvocation invocation) throws Exception {
 		Map<String, Object> session = ActionContext.getContext().getSession();

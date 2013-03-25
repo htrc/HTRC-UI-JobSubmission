@@ -32,6 +32,12 @@ import javax.xml.bind.ValidationEventLocator;
 
 import org.apache.log4j.Logger;
 
+/**
+ * XML validation event handler
+ * 
+ * @author Guangchen
+ * 
+ */
 public class XMLValidationEventHandler implements ValidationEventHandler {
 	private static final Logger logger = Logger
 			.getLogger(XMLValidationEventHandler.class);
