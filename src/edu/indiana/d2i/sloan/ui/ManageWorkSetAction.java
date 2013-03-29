@@ -69,6 +69,8 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 	private static final Logger logger = Logger
 			.getLogger(ManageWorkSetAction.class);
 
+	private final String webPageTitle = "Workset";
+	
 	private static final long serialVersionUID = 1L;
 	@SuppressWarnings("unused")
 	private Map<String, Object> session;
@@ -541,4 +543,7 @@ public class ManageWorkSetAction extends ActionSupport implements SessionAware,
 		this.curWorkSetUpdateList = curWorkSetUpdateList;
 	}
 
+	public String getWebPageTitle() {
+		return webPageTitle;
+	}
 }

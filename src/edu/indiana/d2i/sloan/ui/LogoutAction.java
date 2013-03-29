@@ -50,6 +50,8 @@ public class LogoutAction extends ActionSupport implements SessionAware,
 	private static final long serialVersionUID = 1L;
 	private static final Log logger = LogFactory.getLog(LogoutAction.class);
 
+	private final String webPageTitle = "Home";
+	
 	private Map<String, Object> session;
 	private HttpServletResponse httpResponse = null;
 
@@ -70,5 +72,9 @@ public class LogoutAction extends ActionSupport implements SessionAware,
 	@Override
 	public void setServletResponse(HttpServletResponse response) {
 		this.httpResponse = response;
+	}
+	
+	public String getWebPageTitle() {
+		return webPageTitle;
 	}
 }

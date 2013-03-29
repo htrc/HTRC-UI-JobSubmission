@@ -83,6 +83,8 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 	private static final Logger logger = Logger
 			.getLogger(JobSubmitAction.class);
 
+	private final String webPageTitle = "Job Submit";
+
 	@SuppressWarnings("unused")
 	private Map<String, Object> session;
 
@@ -704,4 +706,7 @@ public class JobSubmitAction extends ActionSupport implements SessionAware,
 		this.worksetCheckbox = worksetCheckbox;
 	}
 
+	public String getWebPageTitle() {
+		return webPageTitle;
+	}
 }

@@ -62,6 +62,7 @@ public class JobSearchAction extends ActionSupport implements SessionAware,
 		LoginRequired, SessionTimeoutRequired {
 	private static final Logger logger = Logger
 			.getLogger(JobSearchAction.class);
+
 	private Set<String> jobTitles;
 	private String selectedJobTitle;
 
